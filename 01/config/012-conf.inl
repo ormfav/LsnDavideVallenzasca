@@ -1,0 +1,1 @@
+#define THROWS 10000
