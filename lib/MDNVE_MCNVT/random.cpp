@@ -18,30 +18,6 @@ using namespace std;
 
 Random :: Random(){}
 
-Random :: Random(const char *PRIMES, const char *SEEDIN){
-    int seed[4];
-    int p1, p2;
-    ifstream Primes(PRIMES);
-    if (Primes.is_open()){
-        Primes >> p1 >> p2 ;
-    } else cerr << "PROBLEM: Unable to open Primes" << endl;
-    Primes.close();
-
-    ifstream input(SEEDIN);
-    string property;
-    if (input.is_open()){
-        while ( !input.eof() ){
-           input >> property;
-           if( property == "RANDOMSEED" ){
-                input >> seed[0] >> seed[1] >> seed[2] >> seed[3];
-                SetRandom(seed,p1,p2);
-            }
-        }
-        input.close();
-    } else cerr << "PROBLEM: Unable to open seed.in" << endl;
-
-}
-
 Random :: ~Random(){}
 
 void Random :: SaveSeed(){
@@ -52,14 +28,6 @@ void Random :: SaveSeed(){
    } else cerr << "PROBLEM: Unable to open random.out" << endl;
   WriteSeed.close();
   return;
-}
-
-double Random :: Exp(double rate) {
-	return -log(1-Rannyu()) / rate;
-}
-
-double Random :: Cauchy(double loc, double scale) {
-	return loc + scale * tan(M_PI * (Rannyu() - 0.5));
 }
 
 double Random :: Gauss(double mean, double sigma) {
@@ -73,7 +41,7 @@ double Random :: Rannyu(double min, double max){
    return min+(max-min)*Rannyu();
 }
 
-double Random :: Rannyu(){
+double Random :: Rannyu(void){
   const double twom12=0.000244140625;
   int i1,i2,i3,i4;
   double r;

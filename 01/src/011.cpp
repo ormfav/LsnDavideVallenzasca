@@ -14,18 +14,15 @@ int main (int argc, char *argv[])
  
     //calcolo media-errore
     //posso passare direttamente Rannyu?
-    auto f_ave=[&rnd](){return rnd.Rannyu();};
-    dataBlocks average(N_BLOCKS,STEPS_PER_BLOCK,f_ave);
-    average.ProgressiveAverage("01/Data/011-progressive_averages.csv");
+    dataBlocks average(N_BLOCKS,STEPS_PER_BLOCK,[&rnd](){return rnd.Rannyu();},"01/Data/011-progressive_averages.csv");
 
     //calcolo varianza-errore
     auto f_var=[&rnd, &average](){
         double x=rnd.Rannyu();
-        double ave=average.Average();
+        double ave=average.Stats(0).first;
         return (x-ave)*(x-ave);
     };
-    dataBlocks variance(N_BLOCKS,STEPS_PER_BLOCK,f_var);
-    variance.ProgressiveAverage("01/Data/011-progressive_variances.csv");
+    dataBlocks variance(N_BLOCKS,STEPS_PER_BLOCK,f_var,"01/Data/011-progressive_variances.csv");
 
     //test chi2
     #include "../config/011-chi2-conf.inl"
@@ -33,7 +30,6 @@ int main (int argc, char *argv[])
         cerr<<"Se il numero di lanci è inferiore al numero di intervalli il test non è statisticamente significativo\n";
         exit(1);
     }
-//reset rangen per riproducibilità?
     ofstream fout;
     fout.open("01/Data/011-chi2.dat");
     for (int i=0; i<N_TESTS; ++i) {

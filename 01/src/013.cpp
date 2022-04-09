@@ -28,8 +28,7 @@ int main (int argc, char *argv[])
     Random rnd("lib/Random/Primes","lib/Random/seed.in");
 
     dataBlocks pi_circle(N_BLOCKS,STEPS_PER_BLOCK,bind(CircleMethod,rnd,NEEDLE_LENGHT,GRID_SPACE));
-    auto fp = [](double x){return 2.*NEEDLE_LENGHT/(x*GRID_SPACE);};
-    pi_circle.Map(fp);
+    pi_circle.Map([](double x){return 2.*NEEDLE_LENGHT/(x*GRID_SPACE);});
     pi_circle.ProgressiveAverage("01/Data/013-pi_progressive_estimate_circle.csv");
  
     return 0;

@@ -13,16 +13,14 @@ int main (int argc, char *argv[])
     const int STEPS_PER_BLOCK=1000;
     Random rnd("lib/Random/Primes","lib/Random/seed.in");
 
-    auto f_average = [&](){return M_PI/2.*cos(M_PI*rnd.Rannyu()/2.);};
-    dataBlocks int_average(N_BLOCKS, STEPS_PER_BLOCK, f_average);
-    int_average.ProgressiveAverage("02/Data/021-progressive_averages_average.csv");
+    auto f_average = [&](){return 0.5*M_PI*cos(0.5*M_PI*rnd.Rannyu());};
+    dataBlocks int_average(N_BLOCKS, STEPS_PER_BLOCK, f_average,"02/Data/021-progressive_averages_average.csv");
 
     auto f_importance_o1 = [&](){
         double x=1.-sqrt(1-rnd.Rannyu());
-        return M_PI/2.*cos(M_PI*x/2.)/(2.*(1.-x));
+        return 0.25*M_PI*cos(0.5*M_PI*x)/(1.-x);
     };
-    dataBlocks int_importance_o1(N_BLOCKS, STEPS_PER_BLOCK, f_importance_o1);
-    int_importance_o1.ProgressiveAverage("02/Data/021-progressive_averages_importance_o1.csv");
+    dataBlocks int_importance_o1(N_BLOCKS, STEPS_PER_BLOCK, f_importance_o1,"02/Data/021-progressive_averages_importance_o1.csv");
 
     //lunga: metto in funzione esterna?
     //è giusta l'implementazione dell'accept-reject?

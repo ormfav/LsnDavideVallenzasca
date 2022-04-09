@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <utility>
 #include <vector>
 #include "../../lib/Random/random.h"
 #include "../../lib/DataBlocking/datablocking.h"
@@ -28,6 +29,20 @@ void RwContinuous(point<double,3>& p, Random &rnd, int lattice_dim){
     p[2]+=lattice_dim*cos(theta);
 };
 
+void Output(const char* PATH, vector<dataBlocks> val){
+    ofstream fout(PATH);
+    if(!fout.is_open()) {
+        cerr << "PROBLEM: Unable to open " << PATH << endl;
+        exit(1);
+    }
+    fout<<"average,variance\n";
+    for (dataBlocks x : val ){
+        pair<double, double> p;
+        p=x.Stats(1);
+        fout<<p.first<<","<<p.second<<endl;
+    }
+    fout.close();
+}
 
 int main (int argc, char *argv[])
 {
@@ -63,14 +78,7 @@ int main (int argc, char *argv[])
         discrete_dist.push_back(t);
     }
 
-    ofstream fout("02/Data/022-discreterw.csv");
-    fout<<"average,variance\n";
-    for (dataBlocks x : discrete_dist ){
-        double ave,var;
-        x.Stats(ave,var);
-        fout<<ave<<","<<var<<endl;
-    }
-    fout.close();
+    Output("02/Data/022-discreterw.csv",discrete_dist);
 
 
     //caso continuo
@@ -87,14 +95,7 @@ int main (int argc, char *argv[])
         continuous_dist.push_back(t);
     }
 
-    fout.open("02/Data/022-continuousrw.csv");
-    fout<<"average,variance\n";
-    for (dataBlocks x : continuous_dist ){
-        double ave,var;
-        x.Stats(ave,var);
-        fout<<ave<<","<<var<<endl;
-    }
-    fout.close();
+    Output("02/Data/022-continuousrw.csv",continuous_dist);
 
     
     return 0;
