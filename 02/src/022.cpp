@@ -46,8 +46,8 @@ void Output(const char* PATH, vector<dataBlocks> val){
 
 int main (int argc, char *argv[])
 {
-    #include "../config/022-conf.inl"
-    Random rnd("lib/Random/Primes","lib/Random/seed.in");
+    #include "../in/022-conf.inl"
+    Random rnd("02/in/Primes","02/in/seed.in");
 
 
     /* Idea:
@@ -74,7 +74,7 @@ int main (int argc, char *argv[])
         discrete_dist.push_back(t);
     }
 
-    Output("02/Data/022-discreterw.csv",discrete_dist);
+    Output("02/out/022-discreterw.csv",discrete_dist);
 
 
     //caso continuo
@@ -91,7 +91,7 @@ int main (int argc, char *argv[])
         continuous_dist.push_back(t);
     }
 
-    Output("02/Data/022-continuousrw.csv",continuous_dist);
+    Output("02/out/022-continuousrw.csv",continuous_dist);
 
     
     return 0;

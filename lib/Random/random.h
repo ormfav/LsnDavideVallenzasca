@@ -27,7 +27,7 @@ public:
     ~Random();
     // methods
     void SetRandom(int * , int, int);
-    void SaveSeed();
+    void SaveSeed(const char *PATH);
     double Rannyu(); //[0,1) uniforme
     double Rannyu(double min, double max); 
     double Gauss(double mean, double sigma);

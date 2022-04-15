@@ -59,13 +59,13 @@ void Input(void)
   Primes.close();
 
 //Read input informations
-  ReadInput.open("input.in");
+  ReadInput.open("04/in/input.in");
 
   ReadInput >> iNVET;
   ReadInput >> restart;
 
-  if(restart) Seed.open("seed.out");
-  else Seed.open("seed.in");
+  if(restart) Seed.open("04/out/seed.out");
+  else Seed.open("04/in/seed.in");
   Seed >> seed[0] >> seed[1] >> seed[2] >> seed[3];
   rnd.SetRandom(seed,p1,p2);
   Seed.close();
@@ -111,13 +111,13 @@ void Input(void)
   cout << "Read initial configuration" << endl << endl;
   if(restart)
   {
-    ReadConf.open("config.out");
-    ReadVelocity.open("velocity.out");
+    ReadConf.open("04/out/config.out");
+    ReadVelocity.open("04/out/velocity.out");
     for (int i=0; i<npart; ++i) ReadVelocity >> vx[i] >> vy[i] >> vz[i];
   }
   else 
   {
-    ReadConf.open("config.in");
+    ReadConf.open("04/in/config.in");
     cout << "Prepare velocities with center of mass velocity equal to zero " << endl;
     double sumv[3] = {0.0, 0.0, 0.0};
     for (int i=0; i<npart; ++i)
@@ -393,11 +393,11 @@ void Averages(int iblk) //Print results for current block
     cout << "Block number " << iblk << endl;
     cout << "Acceptance rate " << accepted/attempted << endl << endl;
     
-    Epot.open("output_epot.dat",ios::app);
-    Ekin.open("output_ekin.dat",ios::app);
-    Temp.open("output_temp.dat",ios::app);
-    Etot.open("output_etot.dat",ios::app);
-    Pres.open("output_pres.dat",ios::app);
+    Epot.open("04/out/output_epot.dat",ios::app);
+    Ekin.open("04/out/output_ekin.dat",ios::app);
+    Temp.open("04/out/output_temp.dat",ios::app);
+    Etot.open("04/out/output_etot.dat",ios::app);
+    Pres.open("04/out/output_pres.dat",ios::app);
     
     stima_pot = blk_av[iv]/blk_norm/(double)npart; //Potential energy
     glob_av[iv] += stima_pot;
@@ -450,8 +450,8 @@ void ConfFinal(void)
   ofstream WriteConf, WriteVelocity, WriteSeed;
 
   cout << "Print final configuration to file config.out" << endl << endl;
-  WriteConf.open("config.out");
-  WriteVelocity.open("velocity.out");
+  WriteConf.open("04/out/config.out");
+  WriteVelocity.open("04/out/velocity.out");
   for (int i=0; i<npart; ++i)
   {
     WriteConf << x[i]/box << "   " <<  y[i]/box << "   " << z[i]/box << endl;
@@ -460,7 +460,7 @@ void ConfFinal(void)
   WriteConf.close();
   WriteVelocity.close();
 
-  rnd.SaveSeed();
+  rnd.SaveSeed("04/out/seed.out");
 }
 
 void ConfXYZ(int nconf){ //Write configuration in .xyz format

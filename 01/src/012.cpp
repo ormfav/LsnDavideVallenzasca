@@ -8,17 +8,17 @@ using namespace std;
 
 int main (int argc, char *argv[])
 {
-    #include "../config/012-conf.inl"
+    #include "../in/012-conf.inl"
     int N[4] = {1,2,10,100};//da rinominare?
     char lastchar[4]={',', ',', ',', '\n'}; //formatting output files
 
     Random rnd("lib/Random/Primes","lib/Random/seed.in");
  
-    ofstream fout_unif("01/Data/012-unif.csv");
+    ofstream fout_unif("01/out/012-unif.csv");
     fout_unif<<"N=1,N=2,N=10,N=100\n";
-    ofstream fout_exp("01/Data/012-exp.csv");
+    ofstream fout_exp("01/out/012-exp.csv");
     fout_exp<<"N=1,N=2,N=10,N=100\n";
-    ofstream fout_cauchy("01/Data/012-cauchy.csv"); 
+    ofstream fout_cauchy("01/out/012-cauchy.csv"); 
     fout_cauchy<<"N=1,N=2,N=10,N=100\n";
 
     for (int i=0; i<THROWS; ++i) {

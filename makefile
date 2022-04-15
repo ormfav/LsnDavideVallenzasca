@@ -5,6 +5,7 @@ CFLAGS = -Wall -O3 --std=c++11
 	01 011 012 013 	01clean 011clean 012clean 013clean \
 	02 021 022 		02clean 021clean 022clean \
 	03 031 			03clean 031clean \
+	04 041 			04clean 041clean 
 
 all: 01 02 03 
 clean: 01clean 02clean 03clean
@@ -25,29 +26,29 @@ $(DB)obj:
 	ls $@
 
 
-
 #Esercitazione 1
 01: 011 012 013
 
 011: 01/obj/011.o $(RND)obj/random.o $(DB)obj/datablocking.o | 01/bin
 	$(CC) $(CFLAGS) $^ -o 01/bin/011.x 
-01/obj/011.o: 01/src/011.cpp 01/config/011-ave_var-conf.inl 01/config/011-chi2-conf.inl | 01/obj
+01/obj/011.o: 01/src/011.cpp 01/in/011-ave_var-conf.inl 01/in/011-chi2-conf.inl | 01/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
 012: 01/obj/012.o $(RND)obj/random.o  | 01/bin
 	$(CC) $(CFLAGS) $^ -o 01/bin/012.x 
-01/obj/012.o: 01/src/012.cpp 01/config/012-conf.inl | 01/obj
+01/obj/012.o: 01/src/012.cpp 01/in/012-conf.inl | 01/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
 013: 01/obj/013.o $(RND)obj/random.o $(DB)obj/datablocking.o | 01/bin
 	$(CC) $(CFLAGS) $^ -o 01/bin/013.x 
-01/obj/013.o: 01/src/013.cpp 01/config/013-conf.inl | 01/obj
+01/obj/013.o: 01/src/013.cpp 01/in/013-conf.inl | 01/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
 01/bin:
 	ls $@
 01/obj:
 	ls $@
+
 
 #Esercitazione 2
 02: 021 022
@@ -67,6 +68,7 @@ $(DB)obj:
 02/obj:
 	ls $@
 
+
 #Esercitazione 3
 03: 031 
 
@@ -80,3 +82,16 @@ $(DB)obj:
 03/obj:
 	ls $@
 
+
+#Esercitazione 4
+04: 041 
+
+042: 04/obj/041.o $(RND)obj/random.o | 04/bin
+	$(CC) $(CFLAGS) $^ -o 04/bin/041.x 
+04/obj/041.o: 04/src/041.cpp | 04/obj
+	$(CC) $(CFLAGS) -c $< -o $@ 
+
+04/bin:
+	ls $@
+04/obj:
+	ls $@

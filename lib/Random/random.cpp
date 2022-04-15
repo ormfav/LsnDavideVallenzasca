@@ -44,12 +44,12 @@ Random :: Random(const char *PRIMES, const char *SEEDIN){
 
 Random :: ~Random(){}
 
-void Random :: SaveSeed(){
+void Random :: SaveSeed(const char *PATH){
    ofstream WriteSeed;
-   WriteSeed.open("seed.out");
+   WriteSeed.open(PATH);
    if (WriteSeed.is_open()){
       WriteSeed << l1 << " " << l2 << " " << l3 << " " << l4 << endl;;
-   } else cerr << "PROBLEM: Unable to open random.out" << endl;
+   } else cerr << "PROBLEM: Unable to open " << PATH << endl;
   WriteSeed.close();
   return;
 }

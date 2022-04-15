@@ -9,17 +9,17 @@ using namespace std;
 
 int main (int argc, char *argv[])
 {
-    #include "../config/021-conf.inl"
+    #include "../in/021-conf.inl"
 
-    Random rnd("lib/Random/Primes","lib/Random/seed.in");
+    Random rnd("02/in/Primes","02/in/seed.in");
     auto f_average = [&](){return 0.5*M_PI*cos(0.5*M_PI*rnd.Rannyu());};
-    dataBlocks int_average(N_BLOCKS, STEPS_PER_BLOCK, f_average,"02/Data/021-progressive_averages_average.csv");
+    dataBlocks int_average(N_BLOCKS, STEPS_PER_BLOCK, f_average,"02/out/021-progressive_averages_average.csv");
 
     auto f_importance_o1 = [&](){
         double x=1.-sqrt(1-rnd.Rannyu());
         return 0.25*M_PI*cos(0.5*M_PI*x)/(1.-x);
     };
-    dataBlocks int_importance_o1(N_BLOCKS, STEPS_PER_BLOCK, f_importance_o1,"02/Data/021-progressive_averages_importance_o1.csv");
+    dataBlocks int_importance_o1(N_BLOCKS, STEPS_PER_BLOCK, f_importance_o1,"02/out/021-progressive_averages_importance_o1.csv");
 
     //lunga: metto in funzione esterna?
     //è giusta l'implementazione dell'accept-reject?
@@ -39,7 +39,7 @@ int main (int argc, char *argv[])
     //    return x;
     //};
     //dataBlocks int_importance_oN(N_BLOCKS, STEPS_PER_BLOCK, bind(f_importance_oN,3));
-    //int_importance_oN.ProgressiveAverage("02/Data/021-progressive_averages_importance_oN.csv");
+    //int_importance_oN.ProgressiveAverage("02/out/021-progressive_averages_importance_oN.csv");
 
 
     return 0;

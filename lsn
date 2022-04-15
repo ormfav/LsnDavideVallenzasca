@@ -7,23 +7,11 @@
 #fix: ordine conta: prima opt poi file
 
 COMPILE=false
-CLEAN=false
-EXEC=false
-RESULTS=false
 
 
-
-while getopts 'cCxrk' OPT; do
+while getopts 'c' OPT; do
     case "$OPT" in
         c) COMPILE=true
-        ;;
-        C) CLEAN=true
-        ;;
-        x) EXEC=true
-        ;;
-        r) RESULTS=true
-        ;;
-        k) KILL=true
         ;;
         *) echo "default"
         ;;
@@ -32,26 +20,24 @@ done
     
 shift "$(($OPTIND -1))"
 
-#makefile usa make all per compilare tutto e clean per pulire tutto
-if [ -z $1 ] 
-then 
-    ARG='all'
-else
-    ARG=$1
-fi
+ARG=$1
+
 #posso sepmlificare in if [ $VAR ] ??
 if [ "$COMPILE" = true ]; then
     echo "making $ARG . . ."
+    echo "output:"
+    echo " "
     make $ARG
+    echo " "
+    echo "=============="
+    echo " "
 fi
-if [ "$EXEC" = true ]; then
-    if [ "ARG" = all ] || [ ${#ARG} -lt 3 ]; then
-        echo "Si può eseguire solo la singola consegna"
-        exit 1
-    fi
-    echo "executing ${ARG:0:2}/bin/$ARG.x . . ."
-    ${ARG:0:2}/bin/$ARG.x
-fi
+
+echo "executing ${ARG:0:2}/bin/$ARG.x . . ."
+echo "output:"
+echo " "
+${ARG:0:2}/bin/$ARG.x
+
 # if [ "$RESULTS" = true ]; then
 #     echo "Launching jupyter notebook . . ."
 #     jupyter-notebook $ARG/$ARG.ipynb &>/dev/null &
@@ -60,9 +46,6 @@ fi
 # if [ "$KILL" = true ]; then 
 #     kill $JUPID
 # fi
-if [ "$CLEAN" = true ]; then #da testare
-    make clean$1
-fi
 
 
 

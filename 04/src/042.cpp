@@ -6,53 +6,57 @@
 
 using namespace std;
 
-#include "../in/031-options-conf.inl"
-#include "../in/031-datablocking-conf.inl"
+#include "../config/031-conf.inl"
 
-double CalloptDirect(Random& rnd){
+double f(Random& rnd){
     double z=rnd.Gauss(0,T);
     double s=S0*exp((INTREST_RATE-0.5*SIGMA*SIGMA)*T+SIGMA*sqrt(T)*z);
     return s > STRIKE_PRICE ? exp(-INTREST_RATE*T)*(s-STRIKE_PRICE) : 0;
 }
 
-double PutoptDirect(Random& rnd){
+double g(Random& rnd){
     double z=rnd.Gauss(0,T);
     double s=S0*exp((INTREST_RATE-0.5*SIGMA*SIGMA)*T+SIGMA*sqrt(T)*z);
     return s < STRIKE_PRICE ? exp(-INTREST_RATE*T)*(STRIKE_PRICE - s) : 0;
 }
 
-double CalloptDiscr(Random& rnd){
+double h(Random& rnd){
     double t = (double)T/N_INTERVALS;
     double s=S0;
-    
+
     for (int i=0; i<N_INTERVALS; ++i){ 
         double z=rnd.Gauss(0,1);
         s*=exp((INTREST_RATE-0.5*SIGMA*SIGMA)*t+SIGMA*sqrt(t)*z);
     }
-    
+
     return s > STRIKE_PRICE ? exp(-INTREST_RATE*T)*(s-STRIKE_PRICE) : 0;
 }
 
-double PutoptDiscr(Random& rnd){
+double i(Random& rnd){
     double t = (double)T/N_INTERVALS;
     double s=S0;
-    
+
     for (int i=0; i<N_INTERVALS; ++i){
         double z=rnd.Gauss(0,1);
         s*=exp((INTREST_RATE-0.5*SIGMA*SIGMA)*t+SIGMA*sqrt(t)*z);
     }
-    
+
     return s < STRIKE_PRICE ? exp(-INTREST_RATE*T)*(STRIKE_PRICE - s) : 0;
 }
 
 int main (int argc, char *argv[])
 {
-    Random rnd("03/in/Primes","03/in/seed.in");       
+    Random rnd("lib/Random/Primes","lib/Random/seed.in");       
     
-    dataBlocks callopt_direct(N_BLOCKS,STEPS_PER_BLOCK, bind(CalloptDirect,rnd),"03/out/031-callopt_direct.csv");
-    dataBlocks putopt_direct(N_BLOCKS,STEPS_PER_BLOCK, bind(PutoptDirect,rnd),"03/out/031-putopt_direct.csv");
-    dataBlocks callopt_discrete(N_BLOCKS,STEPS_PER_BLOCK, bind(CalloptDiscr,rnd),"03/out/031-callopt_discrete.csv");
-    dataBlocks putopt_discrete(N_BLOCKS,STEPS_PER_BLOCK, bind(PutoptDiscr,rnd),"03/out/031-putopt_discrete.csv");
+    dataBlocks callopt_direct(N_BLOCKS,STEPS_PER_BLOCK, bind(f,rnd));
+    callopt_direct.ProgressiveAverage("03/Data/callopt_direct.csv");
+    dataBlocks putopt_direct(N_BLOCKS,STEPS_PER_BLOCK, bind(g,rnd));
+    putopt_direct.ProgressiveAverage("03/Data/putopt_direct.csv");
+    
+    dataBlocks callopt_discrete(N_BLOCKS,STEPS_PER_BLOCK, bind(h,rnd));
+    callopt_discrete.ProgressiveAverage("03/Data/callopt_discrete.csv");
+    dataBlocks putopt_discrete(N_BLOCKS,STEPS_PER_BLOCK, bind(i,rnd));
+    putopt_discrete.ProgressiveAverage("03/Data/putopt_discrete.csv");
     
     return 0;
 }   

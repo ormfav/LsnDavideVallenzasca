@@ -9,12 +9,12 @@ using namespace std;
 
 int main (int argc, char *argv[])
 {
-    #include "../config/011-ave_var-conf.inl"
-    Random rnd("lib/Random/Primes","lib/Random/seed.in");
+    #include "../in/011-ave_var-conf.inl"
+    Random rnd("01/in/Primes","01/in/seed.in");
  
     //calcolo media-errore
     //posso passare direttamente Rannyu?
-    dataBlocks average(N_BLOCKS,STEPS_PER_BLOCK,[&rnd](){return rnd.Rannyu();},"01/Data/011-progressive_averages.csv");
+    dataBlocks average(N_BLOCKS,STEPS_PER_BLOCK,[&rnd](){return rnd.Rannyu();},"01/out/011-progressive_averages.csv");
 
     //calcolo varianza-errore
     auto f_var=[&rnd, &average](){
@@ -22,16 +22,20 @@ int main (int argc, char *argv[])
         double ave=average.Stats(0).first;
         return (x-ave)*(x-ave);
     };
-    dataBlocks variance(N_BLOCKS,STEPS_PER_BLOCK,f_var,"01/Data/011-progressive_variances.csv");
+    dataBlocks variance(N_BLOCKS,STEPS_PER_BLOCK,f_var,"01/out/011-progressive_variances.csv");
 
     //test chi2
-    #include "../config/011-chi2-conf.inl"
+    #include "../in/011-chi2-conf.inl"
     if(N_INTERVALS>=THROWS){
         cerr<<"Se il numero di lanci è inferiore al numero di intervalli il test non è statisticamente significativo\n";
         exit(1);
     }
     ofstream fout;
-    fout.open("01/Data/011-chi2.dat");
+    fout.open("01/out/011-chi2.dat");
+    if(!fout.is_open()){
+        cerr << "PROBLEM: Unable to open 01/out/011-chi2.dat" << endl;
+        exit(1);
+    }
     for (int i=0; i<N_TESTS; ++i) {
         int n[N_INTERVALS]={0};
         double chi2=0;

@@ -12,13 +12,13 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 #define __fluid__
 
 //Random numbers
-#include "random.h"
+#include "../Random/random.h"
 int seed[4];
 Random rnd;
 
 //parameters, observables
 const int m_props=1000;
-int n_props, iv, ik, it, ie, iw;
+int n_props, iv, ik, it, ie, iw, ip;
 double vtail, ptail, bin_size, nbins, sd;
 double walker[m_props];
 
@@ -26,7 +26,7 @@ double walker[m_props];
 double blk_av[m_props], blk_norm, accepted, attempted;
 double glob_av[m_props], glob_av2[m_props];
 double stima_pot, stima_pres, stima_kin, stima_etot, stima_temp;
-double err_pot, err_press, err_kin, err_etot, err_temp, err_gdir;
+double err_pot, err_pres, err_kin, err_etot, err_temp, err_gdir;
 
 //configuration
 const int m_part=108;

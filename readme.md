@@ -1,3 +1,18 @@
+# TL;DR
+Go in the "home" directory. From here you can
+* Compile: make <ex>, where <ex> can be: 
+    - empty = compile all
+    - XY = compile excercise XY
+    - XYz = compile assignment z from excercise XY
+* Execute: ./lsn XYz (**note:** if you change a .inl input file you
+  can compile and execute the desired assignment using ./lsn -c XYz)
+* View results:
+
+* Clean: 
+**Note:** An exeption is made for exercise 04: here 041 refers to
+the calculation made for the solid phase, 042 for the liquid phase,
+043 for the gasseous phase -and not for the actual assignment.
+
 # Folder structure
 Each excercise folder is labelled with a two-chars name indicating
 the number of the excercise. The structure of the folder is the
