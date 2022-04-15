@@ -46,11 +46,7 @@ void Output(const char* PATH, vector<dataBlocks> val){
 
 int main (int argc, char *argv[])
 {
-    const int N_BLOCKS=100;
-    const int RW_PER_BLOCK=1000;
-    const int RW_STEPS=100;
-    const int LATTICE_DIM=1;
-
+    #include "../config/022-conf.inl"
     Random rnd("lib/Random/Primes","lib/Random/seed.in");
 
 

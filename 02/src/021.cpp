@@ -9,10 +9,9 @@ using namespace std;
 
 int main (int argc, char *argv[])
 {
-    const int N_BLOCKS=100; 
-    const int STEPS_PER_BLOCK=1000;
-    Random rnd("lib/Random/Primes","lib/Random/seed.in");
+    #include "../config/021-conf.inl"
 
+    Random rnd("lib/Random/Primes","lib/Random/seed.in");
     auto f_average = [&](){return 0.5*M_PI*cos(0.5*M_PI*rnd.Rannyu());};
     dataBlocks int_average(N_BLOCKS, STEPS_PER_BLOCK, f_average,"02/Data/021-progressive_averages_average.csv");
 
