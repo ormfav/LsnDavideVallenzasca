@@ -1,29 +1,24 @@
 #ifndef __DataBlocking__
 #define __DataBlocking__
 
-//DA RIVEDERE ALLA FINE CON QUELLO CHE USO DAVVERO
-
-#include <vector>
-#include <utility> //pair
+#include <array>
 #include <functional>
 #include "../Random/random.h"
+#include "../Point/point.h"
 
-class dataBlocks
+using namespace std;
+
+template<int PARAMS, int PROPS> class dataBlocks
 {
 public:
-    dataBlocks(int n_blocks, int steps_per_block, std::function<double()>);
-    //eval ProgressiveAverages on construction
-    dataBlocks(int n_blocks, int steps_per_block, std::function<double()>, const char* PATH);
-    ~dataBlocks();
-    
-    void Reset(int n_blocks, int steps_per_block, std::function<double()>);
-    void Eval(int n_blocks, int steps_per_block);
-    void Map(std::function<double(double)>);
-    std::pair<double,double> Stats(bool variance);
-    void ProgressiveAverage(const char* PATH);
+    dataBlocks(function<point<double,PARAMS>()> move, function<array<double,PROPS>(point<double,PARAMS>)> eval_props);
+    double Move();
 
 private:
-    std::vector<double> m_;
+    point<double,PARAMS> params_;
+    function<array<double,PROPS>(point<double,PARAMS>)> eval_props_;
+
+
 };
 
 double Error(double ave,double av2,int n);

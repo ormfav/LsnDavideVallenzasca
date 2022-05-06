@@ -13,26 +13,23 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 #include <ostream>
 #include <cmath>
 #include <iomanip>
+#include <string>
 #include "MD_MC.h"
 
 using namespace std;
 
+string state = "liquid";
+
 int main()
 { 
+  cout<<"Simulating "+state+" phase\n";
   Input(); //Inizialization
-  int nconf = 1;
-  for(int iblk=1; iblk <= nblk; iblk++) //Simulation
-  {
+  for(int iblk=1; iblk <= nblk; iblk++){ //Simulation
     Reset(iblk);   //Reset block averages
-    for(int istep=1; istep <= nstep; istep++)
-    {
+    for(int istep=1; istep <= nstep; istep++){
       Move();
       Measure();
       Accumulate(); //Update block averages
-      /* if(istep%10 == 0){ */
-      /*   ConfXYZ(nconf);//Write actual configuration in XYZ format //Commented to avoid "filesystem full"!  */
-      /*   nconf += 1; */
-      /* } */
     }
     Averages(iblk); //Print results for current block
   }
@@ -59,12 +56,12 @@ void Input(void)
   Primes.close();
 
 //Read input informations
-  ReadInput.open("04/in/input.in");
+  ReadInput.open("04/in/input."+state);
 
-  ReadInput >> iNVET;
+  ReadInput >> iNVET; //0=MD; 1=MC
   ReadInput >> restart;
 
-  if(restart) Seed.open("04/out/seed.out");
+  if(restart) Seed.open("04/out/"+state+"/seed.out");
   else Seed.open("04/in/seed.in");
   Seed >> seed[0] >> seed[1] >> seed[2] >> seed[3];
   rnd.SetRandom(seed,p1,p2);
@@ -111,8 +108,8 @@ void Input(void)
   cout << "Read initial configuration" << endl << endl;
   if(restart)
   {
-    ReadConf.open("04/out/config.out");
-    ReadVelocity.open("04/out/velocity.out");
+    ReadConf.open("04/out/"+state+"/config.out");
+    ReadVelocity.open("04/out/"+state+"/velocity.out");
     for (int i=0; i<npart; ++i) ReadVelocity >> vx[i] >> vy[i] >> vz[i];
   }
   else 
@@ -393,11 +390,11 @@ void Averages(int iblk) //Print results for current block
     cout << "Block number " << iblk << endl;
     cout << "Acceptance rate " << accepted/attempted << endl << endl;
     
-    Epot.open("04/out/output_epot.dat",ios::app);
-    Ekin.open("04/out/output_ekin.dat",ios::app);
-    Temp.open("04/out/output_temp.dat",ios::app);
-    Etot.open("04/out/output_etot.dat",ios::app);
-    Pres.open("04/out/output_pres.dat",ios::app);
+    Epot.open("04/out/"+state+"/output_epot.dat",ios::app);
+    Ekin.open("04/out/"+state+"/output_ekin.dat",ios::app);
+    Temp.open("04/out/"+state+"/output_temp.dat",ios::app);
+    Etot.open("04/out/"+state+"/output_etot.dat",ios::app);
+    Pres.open("04/out/"+state+"/output_pres.dat",ios::app);
     
     stima_pot = blk_av[iv]/blk_norm/(double)npart; //Potential energy
     glob_av[iv] += stima_pot;
@@ -419,10 +416,10 @@ void Averages(int iblk) //Print results for current block
     glob_av2[it] += stima_temp*stima_temp;
     err_temp=Error(glob_av[it],glob_av2[it],iblk);
 
-    stima_pres= blk_av[it]/blk_norm; //Pressure
-    glob_av[it] += stima_pres;
-    glob_av2[it] += stima_pres*stima_pres;
-    err_pres=Error(glob_av[it],glob_av2[it],iblk);
+    stima_pres= blk_av[ip]/blk_norm; //Pressure
+    glob_av[ip] += stima_pres;
+    glob_av2[ip] += stima_pres*stima_pres;
+    err_pres=Error(glob_av[ip],glob_av2[ip],iblk);
 
 //Potential energy per particle
     Epot << setw(wd) << iblk << setw(wd) << stima_pot  << setw(wd) << glob_av[iv]/(double)iblk << setw(wd) << err_pot  << endl;
@@ -450,8 +447,8 @@ void ConfFinal(void)
   ofstream WriteConf, WriteVelocity, WriteSeed;
 
   cout << "Print final configuration to file config.out" << endl << endl;
-  WriteConf.open("04/out/config.out");
-  WriteVelocity.open("04/out/velocity.out");
+  WriteConf.open("04/out/"+state+"/config.out");
+  WriteVelocity.open("04/out/"+state+"/velocity.out");
   for (int i=0; i<npart; ++i)
   {
     WriteConf << x[i]/box << "   " <<  y[i]/box << "   " << z[i]/box << endl;
@@ -460,7 +457,8 @@ void ConfFinal(void)
   WriteConf.close();
   WriteVelocity.close();
 
-  rnd.SaveSeed("04/out/seed.out");
+  string tempstr ="04/out/"+state+"/seed.out";
+  rnd.SaveSeed(tempstr.c_str());
 }
 
 void ConfXYZ(int nconf){ //Write configuration in .xyz format

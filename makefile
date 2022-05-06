@@ -5,10 +5,11 @@ CFLAGS = -Wall -O3 --std=c++11
 	01 011 012 013 	01clean 011clean 012clean 013clean \
 	02 021 022 		02clean 021clean 022clean \
 	03 031 			03clean 031clean \
-	04 041 			04clean 041clean 
+	04 041		 	04clean 041clean \
+	05 051 			05clean 051clean 
 
-all: 01 02 03 
-clean: 01clean 02clean 03clean
+all: 01 02 03 04 05
+clean: 01clean 02clean 03clean 04clean 05clean
 
 
 #random number generator
@@ -24,6 +25,9 @@ $(DB)obj/datablocking.o: $(DB)datablocking.cpp | $(DB)obj
 	$(CC) $(CFLAGS) -c  $^ -o $@
 $(DB)obj:
 	ls $@
+
+#point come lo piazzo dentro?
+PT = lib/Point/
 
 
 #Esercitazione 1
@@ -86,7 +90,7 @@ $(DB)obj:
 #Esercitazione 4
 04: 041 
 
-042: 04/obj/041.o $(RND)obj/random.o | 04/bin
+041: 04/obj/041.o $(RND)obj/random.o | 04/bin
 	$(CC) $(CFLAGS) $^ -o 04/bin/041.x 
 04/obj/041.o: 04/src/041.cpp | 04/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
@@ -94,4 +98,18 @@ $(DB)obj:
 04/bin:
 	ls $@
 04/obj:
+	ls $@
+
+
+#Esercitazione 5
+05: 051 
+
+051: 05/obj/051.o $(RND)obj/random.o $(DB)obj/datablocking.o | 05/bin
+	$(CC) $(CFLAGS) $^ -o 05/bin/051.x 
+05/obj/051.o: 05/src/051.cpp | 05/obj
+	$(CC) $(CFLAGS) -c $< -o $@ 
+
+05/bin:
+	ls $@
+05/obj:
 	ls $@
