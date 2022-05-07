@@ -1,9 +1,10 @@
 #include <cmath>
-template <typename T, int N> point<T,N>::point(function<void(point<T,N>&)> move){
+
+template <typename T, int N> point<T,N>::point(function<bool(array<T,N>&)> move){
     p_={0};
     move_=move;
-    accepted=0;
-    attempted=0;
+    accepted_=0;
+    attempted_=0;
 }
 
 template <typename T, int N> point<T,N>::~point(){}

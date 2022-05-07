@@ -8,6 +8,7 @@
 
 COMPILE=false
 
+set -e
 
 while getopts 'c' OPT; do
     case "$OPT" in
