@@ -1,24 +1,29 @@
 #ifndef __DataBlocking__
 #define __DataBlocking__
 
+#include <iostream>
 #include <array>
 #include <functional>
 #include <fstream>
 #include "../Random/random.h"
 #include "../Point/point.h"
+#include "../Misc/misc.h"
 
-#include <iostream>
 
 using namespace std;
 
-template<int PARAMS, int PROPS> class dataBlocks
+template<int PARAMS, int PROPS> 
+class dataBlocks
 {
 public:
-    dataBlocks(int steps, function<bool(array<double,PARAMS>&)> move, array<function<double(point<double,PARAMS>)>,PROPS> eval_props);
+    dataBlocks(int steps, function<bool(point<double,PARAMS>&)> move, array<function<double(point<double,PARAMS>)>,PROPS> eval_props);
+    dataBlocks(int steps, array<double,PARAMS> x0, function<bool(point<double,PARAMS>&)> move, array<function<double(point<double,PARAMS>)>,PROPS> eval_props);
 
     double Measure();
     void EvalBlock(array<ofstream,PROPS>&);
     void EvalBlock();
+
+    void Map(int prop, function<double(double)> map_val, function<double(double,double)> map_err);
 
     array<double,PROPS> GetBlkAve();
     array<double,PROPS> GetBlkErr();
@@ -42,12 +47,8 @@ private:
     int nblk_; 
 };
 
-double Error(double sum,double sum2,int n)
-{
-    return sqrt(fabs(sum2/(double)n - pow(sum/(double)n,2))/(double)n);
-}
-
-template<int PARAMS, int PROPS> dataBlocks<PARAMS,PROPS>::dataBlocks(int steps, function<bool(array<double,PARAMS>&)> move, array<function<double(point<double,PARAMS>)>,PROPS> eval_props) :
+template<int PARAMS, int PROPS> 
+dataBlocks<PARAMS,PROPS>::dataBlocks(int steps, function<bool(point<double,PARAMS>&)> move, array<function<double(point<double,PARAMS>)>,PROPS> eval_props) :
 STEPS_(steps),
 params_(move)
 {
@@ -60,7 +61,22 @@ params_(move)
     nblk_=0;
 }
 
-template<int PARAMS, int PROPS> double dataBlocks<PARAMS,PROPS>::Measure(){
+template<int PARAMS, int PROPS> 
+dataBlocks<PARAMS,PROPS>::dataBlocks(int steps, array<double,PARAMS> x0, function<bool(point<double,PARAMS>&)> move, array<function<double(point<double,PARAMS>)>,PROPS> eval_props) :
+STEPS_(steps),
+params_(x0,move)
+{
+    eval_props_=eval_props;
+    blk_ave_={0};
+    blk_err_={0};
+    prg_ave_={0};
+    prg_av2_={0}; 
+    prg_err_={0};
+    nblk_=0;
+}
+
+template<int PARAMS, int PROPS> 
+double dataBlocks<PARAMS,PROPS>::Measure(){
     array<double,PROPS> av2={0};
     for(double& x : blk_ave_) x=0;
 
@@ -78,10 +94,11 @@ template<int PARAMS, int PROPS> double dataBlocks<PARAMS,PROPS>::Measure(){
     return params_.Rate();
 }
 
-template<int PARAMS, int PROPS> void dataBlocks<PARAMS,PROPS>::EvalBlock(array<ofstream,PROPS>& fout){
-    if(!nblk_){ //undefined behaviour?
+template<int PARAMS, int PROPS> 
+void dataBlocks<PARAMS,PROPS>::EvalBlock(array<ofstream,PROPS>& fout){
+    if(!nblk_) 
         for (ofstream& x : fout) x << "block_number,block_average,block_error,progressive_average,progressive_error\n" ;
-    }
+    
     nblk_++;
     for(int i=0;i<PROPS;++i) {
         prg_ave_[i]+=blk_ave_[i];
@@ -91,7 +108,8 @@ template<int PARAMS, int PROPS> void dataBlocks<PARAMS,PROPS>::EvalBlock(array<o
     }
 }
 
-template<int PARAMS, int PROPS> void dataBlocks<PARAMS,PROPS>::EvalBlock(){
+template<int PARAMS, int PROPS> 
+void dataBlocks<PARAMS,PROPS>::EvalBlock(){
     nblk_++;
     for(int i=0;i<PROPS;++i) {
         prg_ave_[i]+=blk_ave_[i];
@@ -100,21 +118,35 @@ template<int PARAMS, int PROPS> void dataBlocks<PARAMS,PROPS>::EvalBlock(){
     }
 }
 
-template<int PARAMS, int PROPS> array<double,PROPS> dataBlocks<PARAMS,PROPS>::GetBlkAve(){
+template<int PARAMS, int PROPS> 
+void dataBlocks<PARAMS,PROPS>::Map(int prop, function<double(double)> map_val, function<double(double,double)> map_err){
+    if(prop>=PROPS){
+        cout<<"ERROR: out of range property index\n";
+        exit(1);
+    }
+    blk_ave_[prop]=map_val(blk_ave_[prop]);
+    blk_err_[prop]=map_err(blk_ave_[prop],blk_err_[prop]);
+}
+
+template<int PARAMS, int PROPS> 
+array<double,PROPS> dataBlocks<PARAMS,PROPS>::GetBlkAve(){
     return blk_ave_;
 }
 
-template<int PARAMS, int PROPS> array<double,PROPS> dataBlocks<PARAMS,PROPS>::GetBlkErr(){
+template<int PARAMS, int PROPS> 
+array<double,PROPS> dataBlocks<PARAMS,PROPS>::GetBlkErr(){
     return blk_err_;
 }
 
-template<int PARAMS, int PROPS> array<double,PROPS> dataBlocks<PARAMS,PROPS>::GetPrgAve(){
+template<int PARAMS, int PROPS> 
+array<double,PROPS> dataBlocks<PARAMS,PROPS>::GetPrgAve(){
     array<double,PROPS> out=prg_ave_;
     for(double& x : out) x/=nblk_;
     return out;
 }
 
-template<int PARAMS, int PROPS> array<double,PROPS> dataBlocks<PARAMS,PROPS>::GetPrgErr(){
+template<int PARAMS, int PROPS> 
+array<double,PROPS> dataBlocks<PARAMS,PROPS>::GetPrgErr(){
     return prg_err_;
 }
 

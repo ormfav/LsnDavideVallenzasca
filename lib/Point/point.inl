@@ -1,6 +1,6 @@
 #include <cmath>
 
-template <typename T, int N> point<T,N>::point(function<bool(array<T,N>&)> move){
+template <typename T, int N> point<T,N>::point(function<bool(point<T,N>&)> move){
     p_={0};
     move_=move;
     accepted_=0;
@@ -14,7 +14,7 @@ template <typename T, int N> void point<T,N>::Reset(){
 }
 
 template <typename T, int N> void point<T,N>::Move(){
-    accepted_+=move_(p_);
+    accepted_+=move_(this->p_);
     attempted_++;
 }
 

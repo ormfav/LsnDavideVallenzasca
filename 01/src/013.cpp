@@ -13,50 +13,51 @@ using namespace std;
 
 #include "../in/013-conf.inl"
 
-bool Throw (array<double,1>& cont, Random& rnd){
+bool Throw (point<double,1>& p, Random& rnd){
     double x;
     double y;
-    for(int i=0; i<STEPS_PER_BLOCK; ++i){
     double needle_mid=rnd.Rannyu()*GRID_SPACE*0.5;
-        do{
-            x=rnd.Rannyu();
-            y=rnd.Rannyu();
-        } while(x*x+y*y>1);
-        double needle_proj_lenght=NEEDLE_LENGHT*x/hypot(x,y); 
-        if(needle_mid-0.5*needle_proj_lenght<=0 )
-            cont[0]+=1;
-    }
-    return 1;
-}
+    do{
+        x=rnd.Rannyu();
+        y=rnd.Rannyu();
+    } while(x*x+y*y>1);
+    //projeting the needle onto vertical line
+    p[0]=NEEDLE_LENGHT*x/hypot(x,y); 
 
-double Eval(point<double,1> p){
-    double x=2.*NEEDLE_LENGHT/(p[0]*GRID_SPACE);
-    p.Reset();
-    return x;
+    p[0]=needle_mid-0.5*p[0];
+
+    return 1;
 }
 
 
 int main (int argc, char *argv[])
 {
+    //Initializing random number generator
     Random rnd("01/in/Primes","01/in/seed.in");
 
-    array<function<double(point<double,1>)>,1> f = {Eval};
-    dataBlocks<1,1> pi_circle(1,bind(Throw,placeholders::_1,rnd),f);
+    //Initializing data blocking
+    array<function<double(point<double,1>)>,1> f = {[](point<double,1> p){if(p[0]<=0) return 1; else return 0;}};
+    dataBlocks<1,1> pi_circle(STEPS_PER_BLOCK,bind(Throw,placeholders::_1,rnd),f);
+    auto map_val=[](double x){return 2.*NEEDLE_LENGHT/(x*GRID_SPACE);};
+    auto map_err=[](double x, double err){return 2.*err*NEEDLE_LENGHT/(x*x*GRID_SPACE);}; //DA SISTEMARE
 
+    //Initializing output file
     string path ="01/out/013-pi_progressive_estimate_circle.csv";
     array<ofstream,1> fout;
     fout[0].open(path);
-    if(!fout[0].is_open())
+    if(!fout[0].is_open()){
         cout<< "PROBLEM: unable to open "+path<<endl;
+        exit(1);
+    }
 
+    //Data blocking
     for(int i=0; i<N_BLOCKS; ++i){
         pi_circle.Measure();
-        cout<<pi_circle.GetBlkAve()[0]<<endl;
+        pi_circle.Map(0,map_val,map_err);
         pi_circle.EvalBlock(fout);
     }
 
     fout[0].close();
-
 
     return 0;
 }

@@ -3,10 +3,11 @@
 #include <fstream>
 #include <cmath>
 #include <utility>
-#include <vector>
+#include <queue>
 #include "../../lib/Random/random.h"
 #include "../../lib/DataBlocking/datablocking.h"
 #include "../../lib/Point/point.h"
+#include "../../lib/Misc/misc.h"
 
 using namespace std;
 
@@ -14,13 +15,13 @@ int Sgn(double x){
     return (x>=0)-(x<0);
 }
 
-void RwDiscrete(point<int,3>& p, Random &rnd, int lattice_dim){
+void RwDiscrete(point<double,3>& p, Random &rnd, double lattice_dim){
     int dir=rnd.Rannyu(0,3); 
     int verse=Sgn(rnd.Rannyu(-1,1)); 
     p[dir]+=verse*lattice_dim;
 };
 
-void RwContinuous(point<double,3>& p, Random &rnd, int lattice_dim){
+void RwContinuous(point<double,3>& p, Random &rnd, double lattice_dim){
     double theta=acos(1-rnd.Rannyu(0,2));
     double phi=rnd.Rannyu(0,2*M_PI); 
 
@@ -29,69 +30,73 @@ void RwContinuous(point<double,3>& p, Random &rnd, int lattice_dim){
     p[2]+=lattice_dim*cos(theta);
 };
 
-void Output(const char* PATH, vector<dataBlocks> val){
-    ofstream fout(PATH);
-    if(!fout.is_open()) {
-        cerr << "PROBLEM: Unable to open " << PATH << endl;
-        exit(1);
-    }
-    fout<<"average,variance\n";
-    for (dataBlocks x : val ){
-        pair<double, double> p;
-        p=x.Stats(1);
-        fout<<p.first<<","<<p.second<<endl;
-    }
-    fout.close();
-}
-
+#include "../in/022-conf.inl"
 int main (int argc, char *argv[])
 {
-    #include "../in/022-conf.inl"
+    /* Initializing random number generator */
     Random rnd("02/in/Primes","02/in/seed.in");
 
+    /* Common functions */
+    queue<array<double,3>> store_rw_pos;
+    auto m = [&rnd,&store_rw_pos](point<double,3>& p, function<void(point<double,3>&,Random&,double)> rw_move){
+        p.Jump(store_rw_pos.front());
+        store_rw_pos.pop();
+        rw_move(p,rnd,LATTICE_DIM);
+        store_rw_pos.push(p.ToArray());
+        return 1;
+    };
+    array<function<double(point<double,3>)>,1> f = {[](point<double,3> p){return p.Lenght();}};
 
-    /* Idea:
-     * vettore di punti ciascuno evolverà indipendentemente con rws
-     * evolvo tutti i random walk di un passo e salvo il risultato
-     * in un vettore di datablocks. Evolvo tutti di un altro passo
-     * e salvo la distanza in un vettore di datablocks
-     * -> ottengo così una misura in datablocsk della distanza ad
-     *  ogni passo*/
+    /* -------- */
+    /* Discrete  */
+    /* -------- */
 
+    /* Initializing data blocking */
+    dataBlocks<3,1> r_discrete(RW_PER_BLOCK,bind(m,placeholders::_1, RwDiscrete) ,f);
+    for (int i=0;i<RW_PER_BLOCK*N_BLOCKS;++i) store_rw_pos.push({0});
+    
+    /* Initializing output file */
+    string path = "02/out/022-discreterw.csv";
+    ofstream fout(path);
+    FileCheck(fout, path);
+    fout<<"step,r_ave,r_err\n";
 
-
-    //caso discreto
-    point<int,3> discrete_rw[RW_PER_BLOCK*N_BLOCKS]; //numero totale di rw
-    vector<dataBlocks> discrete_dist;
-    discrete_dist.reserve(RW_STEPS);
-    for (int i=0; i<RW_STEPS; ++i){
-        int k=-1;
-        dataBlocks t(N_BLOCKS,RW_PER_BLOCK,[&](){
-            k++;
-            RwDiscrete(discrete_rw[k],rnd,LATTICE_DIM);
-            return discrete_rw[k].Lenght();
-        });
-        discrete_dist.push_back(t);
+    /* Data blocking  */
+    for(int i=0;i<RW_STEPS;++i){
+        for(int j=0;j<N_BLOCKS;++j){
+            r_discrete.Measure();
+            r_discrete.EvalBlock();
+        }
+        fout<<i<<","<<r_discrete.GetPrgAve()[0]<<","<<r_discrete.GetPrgErr()[0]<<endl;
     }
 
-    Output("02/out/022-discreterw.csv",discrete_dist);
+    fout.close();
 
+    
+    /* ---------- */
+    /* Continuous */
+    /* ---------- */
 
-    //caso continuo
-    point<double,3> continuous_rw[RW_PER_BLOCK*N_BLOCKS]; //numero totale di rw
-    vector<dataBlocks> continuous_dist;
-    continuous_dist.reserve(RW_STEPS);
-    for (int i=0; i<RW_STEPS; ++i){
-        int k=-1;
-        dataBlocks t(N_BLOCKS,RW_PER_BLOCK,[&](){
-            k++;
-            RwContinuous(continuous_rw[k],rnd,LATTICE_DIM);
-            return continuous_rw[k].Lenght();
-        });
-        continuous_dist.push_back(t);
+    /* Initializing data blocking */
+    dataBlocks<3,1> r_continuous(RW_PER_BLOCK,bind(m,placeholders::_1, RwContinuous) ,f);
+    for (int i=0;i<RW_PER_BLOCK*N_BLOCKS;++i) {store_rw_pos.pop();store_rw_pos.push({0});}
+    
+    /* Initializing output file */
+    path = "02/out/022-continuousrw.csv";
+    fout.open(path);
+    FileCheck(fout, path);
+    fout<<"step,r_ave,r_err\n";
+
+    /* Data blocking  */
+    for(int i=0;i<RW_STEPS;++i){
+        for(int j=0;j<N_BLOCKS;++j){
+            r_continuous.Measure();
+            r_continuous.EvalBlock();
+        }
+        fout<<i<<","<<r_continuous.GetPrgAve()[0]<<","<<r_continuous.GetPrgErr()[0]<<endl;
     }
 
-    Output("02/out/022-continuousrw.csv",continuous_dist);
+    fout.close();
 
     
     return 0;

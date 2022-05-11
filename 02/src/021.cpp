@@ -6,20 +6,44 @@
 
 using namespace std;
 
+#define PI_2 M_PI/2
 
 int main (int argc, char *argv[])
 {
     #include "../in/021-conf.inl"
 
+    //Initializing random number generator
     Random rnd("02/in/Primes","02/in/seed.in");
-    auto f_average = [&](){return 0.5*M_PI*cos(0.5*M_PI*rnd.Rannyu());};
-    dataBlocks int_average(N_BLOCKS, STEPS_PER_BLOCK, f_average,"02/out/021-progressive_averages_average.csv");
 
-    auto f_importance_o1 = [&](){
-        double x=1.-sqrt(1-rnd.Rannyu());
-        return 0.25*M_PI*cos(0.5*M_PI*x)/(1.-x);
+    //Initializing data blocking
+    auto m = [&rnd](point<double,1>& p){p[0]=rnd.Rannyu(); return (bool)1;};
+    auto f_average = [](point<double,1> p){return PI_2*cos(p[0]*PI_2);};
+    auto f_importance_o1 = [](point<double,1> p){ 
+        double x=1.-sqrt(1-p[0]);
+        return 0.5*PI_2*cos(PI_2*x)/(1.-x);
     };
-    dataBlocks int_importance_o1(N_BLOCKS, STEPS_PER_BLOCK, f_importance_o1,"02/out/021-progressive_averages_importance_o1.csv");
+    array<function<double(point<double,1>)>,2> f = {f_average, f_importance_o1};
+    dataBlocks<1,2> integ(STEPS_PER_BLOCK, m, f);
+
+    //Initializing output files
+    array<ofstream,2> fout;
+    array<string,2> path={"02/out/021-progressive_averages_average.csv","02/out/021-progressive_averages_importance_o1.csv"};
+    for(int i=0;i<2;++i) {
+        fout[i].open(path[i]);
+        if (!fout[i].is_open()){
+            cout<<"PROBLEM: unable to open "+path[i]<<endl;
+            exit(1);
+        }
+    }
+
+    //Data blocking
+    for(int i=0; i<N_BLOCKS; ++i){
+        integ.Measure();
+        integ.EvalBlock(fout);
+    }
+
+    fout[0].close();
+    fout[1].close();
 
     //lunga: metto in funzione esterna?
     //è giusta l'implementazione dell'accept-reject?
@@ -30,10 +54,10 @@ int main (int argc, char *argv[])
     //    double x,y,f;
     //    do{
     //        x=rnd.Rannyu();
-    //        y=rnd.Rannyu(0,M_PI/2);
+    //        y=rnd.Rannyu(0,PI_2);
     //        f=0;
     //        for (int k=1;k<=N;k+=2) {
-    //             f+=pow(-1,(k+1)/2)*M_PI/2*pow(M_PI/2*(x-1),k+1)/tgamma(k+1);
+    //             f+=pow(-1,(k+1)/2)*PI_2*pow(PI_2*(x-1),k+1)/tgamma(k+1);
     //        }
     //    }while (y>f);
     //    return x;

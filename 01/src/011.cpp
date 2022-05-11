@@ -18,7 +18,7 @@ int main (int argc, char *argv[])
     Random rnd("01/in/Primes","01/in/seed.in");
  
     //Initializing data blocking
-    auto m = [&rnd](array<double,1>& p){p[0]=rnd.Rannyu(); return (bool)1;};
+    auto m = [&rnd](point<double,1>& p){p[0]=rnd.Rannyu(); return (bool)1;};
     auto e0 = [](point<double,1> p){return p[0];};
     auto e1 = [](point<double,1> p){return (p[0]-0.5)*(p[0]-0.5);};
     array<function<double(point<double,1>)>,2> e = {e0,e1};

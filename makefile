@@ -30,6 +30,7 @@ DBH = lib/DataBlocking/datablocking.h
 PTH = lib/Point/point.h 
 PTS = lib/Point/point.inl
 
+MIH = lib/Misc/misc.h 
 
 #Esercitazione 1
 01: 011 012 013
@@ -58,12 +59,12 @@ PTS = lib/Point/point.inl
 #Esercitazione 2
 02: 021 022
 
-021: 02/obj/021.o $(RND)obj/random.o $(DB)obj/datablocking.o | 02/bin
+021: 02/obj/021.o $(RND)obj/random.o $(DBH) $(PTH) | 02/bin
 	$(CC) $(CFLAGS) $^ -o 02/bin/021.x 
 02/obj/021.o: 02/src/021.cpp | 02/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
-022: 02/obj/022.o $(RND)obj/random.o $(DB)obj/datablocking.o | 02/bin
+022: 02/obj/022.o $(RND)obj/random.o $(DBH) $(PTH) $(MIS) | 02/bin
 	$(CC) $(CFLAGS) $^ -o 02/bin/022.x 
 02/obj/022.o: 02/src/022.cpp | 02/obj
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -77,7 +78,7 @@ PTS = lib/Point/point.inl
 #Esercitazione 3
 03: 031 
 
-031: 03/obj/031.o $(RND)obj/random.o $(DB)obj/datablocking.o | 03/bin
+031: 03/obj/031.o $(RND)obj/random.o $(DBH) $(PTH) | 03/bin
 	$(CC) $(CFLAGS) $^ -o 03/bin/031.x 
 03/obj/031.o: 03/src/031.cpp | 03/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
@@ -105,7 +106,7 @@ PTS = lib/Point/point.inl
 #Esercitazione 5
 05: 051 
 
-051: 05/obj/051.o $(RND)obj/random.o $(DB)obj/datablocking.o | 05/bin
+051: 05/obj/051.o $(RND)obj/random.o $(DBH) $(PTH) $(MIH)| 05/bin
 	$(CC) $(CFLAGS) $^ -o 05/bin/051.x 
 05/obj/051.o: 05/src/051.cpp | 05/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
