@@ -115,3 +115,16 @@ MIH = lib/Misc/misc.h
 	ls $@
 05/obj:
 	ls $@
+
+#Esercitazione 8
+08: 081 082
+
+081: 08/obj/081.o $(RND)obj/random.o $(DBH) $(PTH) $(MIH)| 08/bin
+	$(CC) $(CFLAGS) $^ -o 08/bin/081.x 
+08/obj/081.o: 08/src/081.cpp | 08/obj
+	$(CC) $(CFLAGS) -c $< -o $@ 
+
+08/bin:
+	ls $@
+08/obj:
+	ls $@
