@@ -77,10 +77,22 @@ for M properties based on the values of N evolving parameters.
 ### Members
 - a ```point<double,N>``` representing the set of evolving parameters
 - an ```array<double,M>``` representing the properties to evaluate
-- an M-dimensional array of functions ```point<double,M>->double```
+- an M-dimensional array of functions ```point<double,M> -> double```
   containing the function to evaluate each property from the
   parameters
 -
 -
 - 
 ### Methods
+- Two constructors. They accept:
+    - moves per block
+    - (optional) an N-dimenional array reresenting the starting
+      point. If not provided all parameters are initialized to 0
+    - a function ```point<double,N>& -> bool```, the law of
+      evolution for parameters 
+    - the M-dimensional array of function needed to evaluate the
+      properties
+- void Measure() makes the point of parameters evolve according to
+  the law provided and evaluate, evaluate the properties and
+  updates the accumulators for the avereage
+- void EvalBlk() 

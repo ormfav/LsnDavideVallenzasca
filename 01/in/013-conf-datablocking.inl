@@ -1,4 +1,2 @@
-#define NEEDLE_LENGHT 1
-#define GRID_SPACE 2
 #define N_BLOCKS 100 
 #define STEPS_PER_BLOCK 10000

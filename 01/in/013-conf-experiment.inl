@@ -1,0 +1,2 @@
+#define NEEDLE_LENGHT 1
+#define GRID_SPACE 2

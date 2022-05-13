@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <functional>
 #include <iostream>
 #include <cmath>
@@ -5,6 +6,7 @@
 #include "../../lib/Random/random.h"
 #include "../../lib/Point/point.h"
 #include "../../lib/DataBlocking/datablocking.h"
+#include "../../lib/Misc/misc.h"
 
 using namespace std;
 
@@ -41,22 +43,25 @@ int main (int argc, char *argv[])
     /* Setting output files */
     array<ofstream,2> fout_drct;
     array<ofstream,2> fout_disc;
-    array<string,2> path_drct = {"03/out/031-callopt_direct.csv","03/out/031-callopt_direct.csv"};
-    array<string,2> path_disc= {"03/out/031-putopt_discrete.csv","03/out/031-putopt_discrete.csv"};
+    array<string,2> path_drct = {"03/out/031-callopt_direct.csv","03/out/031-putopt_direct.csv"};
+    array<string,2> path_disc= {"03/out/031-callopt_discrete.csv","03/out/031-putopt_discrete.csv"};
     for(int i=0;i<2;++i){
         fout_drct[i].open(path_drct[i]);
+        FileCheck(fout_drct[i], path_drct[i]);
         fout_disc[i].open(path_disc[i]);
+        FileCheck(fout_disc[i], path_disc[i]);
     }
 
     /* Data blocking */
+    cout.setf(ios::unitbuf);
+    cout<<"Block proggression:\n";
     for(int i=0;i<N_BLOCKS;++i){
         opt_drct.Measure();
-        opt_disc.Measure();
         opt_drct.EvalBlock(fout_drct);
+        opt_disc.Measure();
         opt_disc.EvalBlock(fout_disc);
-        /* cout<<opt_drct.GetPrgAve()[1]<<" "; */
-        /* cout<<opt_disc.GetPrgAve()[1]<<"\n"; */
-        /* cout<<endl; */
+        cout<<i+1<<"\\"<<N_BLOCKS<<" ";
+        if((i+1)%10==0)cout<<endl;
     }
 
     for(int i=0;i<2;++i){

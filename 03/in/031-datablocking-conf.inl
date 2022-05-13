@@ -1,3 +1,3 @@
 #define N_BLOCKS 100
-#define STEPS_PER_BLOCK 1000
+#define STEPS_PER_BLOCK 20000
 #define N_INTERVALS 100

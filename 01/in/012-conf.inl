@@ -1,1 +1,1 @@
-#define THROWS 10000
+#define T 10000

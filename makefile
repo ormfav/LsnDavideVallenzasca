@@ -21,10 +21,6 @@ $(RDN)obj:
 
 #data blocking
 DBH = lib/DataBlocking/datablocking.h
-#$(DB)obj/datablocking.o: $(DB)datablocking.cpp | $(DB)obj
-#	$(CC) $(CFLAGS) -c  $^ -o $@
-#$(DB)obj:
-#	ls $@
 
 #point come lo piazzo dentro?
 PTH = lib/Point/point.h 
@@ -35,19 +31,19 @@ MIH = lib/Misc/misc.h
 #Esercitazione 1
 01: 011 012 013
 
-011: 01/obj/011.o $(RND)obj/random.o $(DB) $(PTH) | 01/bin
+011: 01/obj/011.o $(RND)obj/random.o $(DBH) $(PTH) $(MIH) | 01/bin
 	$(CC) $(CFLAGS) $^ -o 01/bin/011.x 
 01/obj/011.o: 01/src/011.cpp 01/in/011-ave_var-conf.inl 01/in/011-chi2-conf.inl | 01/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
-012: 01/obj/012.o $(RND)obj/random.o  | 01/bin
+012: 01/obj/012.o $(RND)obj/random.o $(MIH) | 01/bin
 	$(CC) $(CFLAGS) $^ -o 01/bin/012.x 
 01/obj/012.o: 01/src/012.cpp 01/in/012-conf.inl | 01/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
-013: 01/obj/013.o $(RND)obj/random.o  $(DB) $(PTH) | 01/bin
+013: 01/obj/013.o $(RND)obj/random.o  $(DBH) $(PTH) $(MIH) | 01/bin
 	$(CC) $(CFLAGS) $^ -o 01/bin/013.x 
-01/obj/013.o: 01/src/013.cpp 01/in/013-conf.inl  | 01/obj
+01/obj/013.o: 01/src/013.cpp 01/in/013-conf-experiment.inl 01/in/013-conf-datablocking.inl   | 01/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
 01/bin:

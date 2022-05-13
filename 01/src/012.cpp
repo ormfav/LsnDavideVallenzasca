@@ -1,27 +1,33 @@
 #include <iostream>
 #include <fstream>
+#include <array>
 #include "../../lib/Random/random.h"
+#include "../../lib/Misc/misc.h"
 
 using namespace std;
-//TODO: documento e rivedo nome variabili
-//riorganizzo ciclo? magari funzione esterna?
 
 int main (int argc, char *argv[])
 {
     #include "../in/012-conf.inl"
-    int N[4] = {1,2,10,100};//da rinominare?
+    int N[4] = {1,2,10,100};
     char lastchar[4]={',', ',', ',', '\n'}; //formatting output files
 
     Random rnd("lib/Random/Primes","lib/Random/seed.in");
  
-    ofstream fout_unif("01/out/012-unif.csv");
-    fout_unif<<"N=1,N=2,N=10,N=100\n";
-    ofstream fout_exp("01/out/012-exp.csv");
-    fout_exp<<"N=1,N=2,N=10,N=100\n";
-    ofstream fout_cauchy("01/out/012-cauchy.csv"); 
-    fout_cauchy<<"N=1,N=2,N=10,N=100\n";
+    array<ofstream,3> fout;
+    array<string,3> path={
+        "01/out/012-unif.csv",
+        "01/out/012-exp.csv",
+        "01/out/012-cauchy.csv"
+    };
 
-    for (int i=0; i<THROWS; ++i) {
+    for(int i=0;i<3;i++){
+        fout[i].open(path[i]);
+        FileCheck(fout[i],path[i]);
+        fout[i]<<"N=1,N=2,N=10,N=100\n";
+    }
+
+    for (int i=0; i<T; ++i) {
         for(int j=0; j<4; ++j){
             double sum_unif=0.; 
             double sum_exp=0.; 
@@ -31,9 +37,9 @@ int main (int argc, char *argv[])
                 sum_exp+=rnd.Exp(1.);
                 sum_cauchy+=rnd.Cauchy(0.,1.);
             }
-            fout_unif<<sum_unif/N[j]<<lastchar[j];
-            fout_exp<<sum_exp/N[j]<<lastchar[j];
-            fout_cauchy<<sum_cauchy/N[j]<<lastchar[j];
+            fout[0]<<sum_unif/N[j]<<lastchar[j];
+            fout[1]<<sum_exp/N[j]<<lastchar[j];
+            fout[2]<<sum_cauchy/N[j]<<lastchar[j];
         }
     }
  
