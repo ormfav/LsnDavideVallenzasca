@@ -27,7 +27,7 @@ int main (int argc, char *argv[])
 
     //Initializing output files
     array<ofstream,2> fout;
-    array<string,2> path={"02/out/021-progressive_averages_average.csv","02/out/021-progressive_averages_importance_o1.csv"};
+    array<string,2> path={"02/out/021-uniform.csv","02/out/021-importance_o1.csv"};
     for(int i=0;i<2;++i) {
         fout[i].open(path[i]);
         if (!fout[i].is_open()){
