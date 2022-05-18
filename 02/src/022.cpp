@@ -36,7 +36,7 @@ int main (int argc, char *argv[])
     /* Initializing random number generator */
     Random rnd("02/in/Primes","02/in/seed.in");
 
-    /* Common functions */
+    /* functions */
     queue<array<double,3>> store_rw_pos;
     auto m = [&rnd,&store_rw_pos](point<double,3>& p, function<void(point<double,3>&,Random&,double)> rw_move){
         p.Jump(store_rw_pos.front());
@@ -45,7 +45,7 @@ int main (int argc, char *argv[])
         store_rw_pos.push(p.ToArray());
         return 1;
     };
-    array<function<double(point<double,3>)>,1> f = {[](point<double,3> p){return p.Lenght();}};
+    array<function<double(point<double,3>)>,1> f = {[](point<double,3> p){return p.Lenght2();}};
 
     /* -------- */
     /* Discrete  */
@@ -67,7 +67,9 @@ int main (int argc, char *argv[])
             r_discrete.Measure();
             r_discrete.EvalBlock();
         }
-        fout<<i<<","<<r_discrete.GetPrgAve()[0]<<","<<r_discrete.GetPrgErr()[0]<<endl;
+        double val=sqrt(r_discrete.GetPrgAve()[0]);
+        double err=0.5*r_discrete.GetPrgErr()[0]/val;
+        fout<<(i+1)<<","<<val<<","<<err<<endl;
     }
 
     fout.close();
@@ -93,7 +95,9 @@ int main (int argc, char *argv[])
             r_continuous.Measure();
             r_continuous.EvalBlock();
         }
-        fout<<i<<","<<r_continuous.GetPrgAve()[0]<<","<<r_continuous.GetPrgErr()[0]<<endl;
+        double val=sqrt(r_continuous.GetPrgAve()[0]);
+        double err=0.5*r_continuous.GetPrgErr()[0]/val;
+        fout<<(i+1)<<","<<val<<","<<err<<endl;
     }
 
     fout.close();

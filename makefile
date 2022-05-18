@@ -6,10 +6,11 @@ CFLAGS = -Wall -O3 --std=c++11
 	02 021 022 		02clean 021clean 022clean \
 	03 031 			03clean 031clean \
 	04 041		 	04clean 041clean \
-	05 051 			05clean 051clean 
+	05 051 			05clean 051clean \
+	08 081 082		05clean 081clean 082clean 
 
-all: 01 02 03 04 05
-clean: 01clean 02clean 03clean 04clean 05clean
+all: 01 02 03 04 05 08
+clean: 01clean 02clean 03clean 04clean 05clean 08clean
 
 
 #random number generator
@@ -17,31 +18,38 @@ RND= lib/Random/
 $(RND)obj/random.o: $(RND)random.cpp | $(RND)obj
 	$(CC) $(CFLAGS) -c $^ -o $@
 $(RDN)obj:
-	ls $@
+	mkdir -p $@
 
 #data blocking
 DBH = lib/DataBlocking/datablocking.h
 
-#point come lo piazzo dentro?
+#point class
 PTH = lib/Point/point.h 
-PTS = lib/Point/point.inl
 
-MIH = lib/Misc/misc.h 
+#metropolis funcions
+MEH = lib/Metropolis/metropolis.h
+
+MIS = lib/Misc/
+$(MIS)obj/misc.o: $(MIS)misc.cpp | $(MIS)obj
+	$(CC) $(CFLAGS) -c $^ -o $@
+$(MIS)obj:
+	mkdir -p $@
 
 #Esercitazione 1
 01: 011 012 013
+01clean: 011clean 012clean 013clean
 
-011: 01/obj/011.o $(RND)obj/random.o $(DBH) $(PTH) $(MIH) | 01/bin
+011: 01/obj/011.o $(RND)obj/random.o $(MIS)obj/misc.o $(DBH) $(PTH) | 01/bin
 	$(CC) $(CFLAGS) $^ -o 01/bin/011.x 
 01/obj/011.o: 01/src/011.cpp 01/in/011-ave_var-conf.inl 01/in/011-chi2-conf.inl | 01/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
-012: 01/obj/012.o $(RND)obj/random.o $(MIH) | 01/bin
+012: 01/obj/012.o $(RND)obj/random.o $(MIS)obj/misc.o | 01/bin
 	$(CC) $(CFLAGS) $^ -o 01/bin/012.x 
 01/obj/012.o: 01/src/012.cpp 01/in/012-conf.inl | 01/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
-013: 01/obj/013.o $(RND)obj/random.o  $(DBH) $(PTH) $(MIH) | 01/bin
+013: 01/obj/013.o $(RND)obj/random.o $(MIS)obj/misc.o $(DBH) $(PTH) | 01/bin
 	$(CC) $(CFLAGS) $^ -o 01/bin/013.x 
 01/obj/013.o: 01/src/013.cpp 01/in/013-conf-experiment.inl 01/in/013-conf-datablocking.inl   | 01/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
@@ -51,16 +59,31 @@ MIH = lib/Misc/misc.h
 01/obj:
 	ls $@
 
+011clean: 
+	rm -f 01/out/011*
+	rm -f 01/obj/011*
+	rm -f 01/bin/011*
+
+012clean: 
+	rm -f 01/out/012*
+	rm -f 01/obj/012*
+	rm -f 01/bin/012*
+
+013clean: 
+	rm -f 01/out/013*
+	rm -f 01/obj/013*
+	rm -f 01/bin/013*
 
 #Esercitazione 2
 02: 021 022
+02clean: 021clean 022clean 
 
 021: 02/obj/021.o $(RND)obj/random.o $(DBH) $(PTH) | 02/bin
 	$(CC) $(CFLAGS) $^ -o 02/bin/021.x 
 02/obj/021.o: 02/src/021.cpp | 02/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
-022: 02/obj/022.o $(RND)obj/random.o $(DBH) $(PTH) $(MIS) | 02/bin
+022: 02/obj/022.o $(RND)obj/random.o $(MIS)obk/misc.o $(DBH) $(PTH)  | 02/bin
 	$(CC) $(CFLAGS) $^ -o 02/bin/022.x 
 02/obj/022.o: 02/src/022.cpp | 02/obj
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -70,9 +93,19 @@ MIH = lib/Misc/misc.h
 02/obj:
 	ls $@
 
+021clean: 
+	rm -f 02/out/021*
+	rm -f 02/obj/021*
+	rm -f 02/bin/021*
+
+022clean: 
+	rm -f 02/out/022*
+	rm -f 02/obj/022*
+	rm -f 02/bin/022*
 
 #Esercitazione 3
 03: 031 
+03clean: 031clean 
 
 031: 03/obj/031.o $(RND)obj/random.o $(DBH) $(PTH) | 03/bin
 	$(CC) $(CFLAGS) $^ -o 03/bin/031.x 
@@ -84,6 +117,10 @@ MIH = lib/Misc/misc.h
 03/obj:
 	ls $@
 
+031clean: 
+	rm -f 02/out/031*
+	rm -f 02/obj/031*
+	rm -f 02/bin/031*
 
 #Esercitazione 4
 04: 041 
@@ -102,7 +139,7 @@ MIH = lib/Misc/misc.h
 #Esercitazione 5
 05: 051 
 
-051: 05/obj/051.o $(RND)obj/random.o $(DBH) $(PTH) $(MIH)| 05/bin
+051: 05/obj/051.o $(RND)obj/random.o $(MIS)obj/misc.o $(DBH) $(PTH) $(MEH) | 05/bin
 	$(CC) $(CFLAGS) $^ -o 05/bin/051.x 
 05/obj/051.o: 05/src/051.cpp | 05/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
@@ -115,7 +152,7 @@ MIH = lib/Misc/misc.h
 #Esercitazione 8
 08: 081 082
 
-081: 08/obj/081.o $(RND)obj/random.o $(DBH) $(PTH) $(MIH)| 08/bin
+081: 08/obj/081.o $(RND)obj/random.o $(MIS)obj/misc.o $(DBH) $(PTH) $(MEH) | 08/bin
 	$(CC) $(CFLAGS) $^ -o 08/bin/081.x 
 08/obj/081.o: 08/src/081.cpp | 08/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 

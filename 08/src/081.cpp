@@ -6,6 +6,7 @@
 #include "../../lib/DataBlocking/datablocking.h"
 #include "../../lib/Point/point.h"
 #include "../../lib/Misc/misc.h"
+#include "../../lib/Metropolis/metropolis.h"
 
 
 using namespace std;
@@ -13,33 +14,31 @@ using namespace std;
 /* #include "../config/081-conf.inl" */
 #define DELTA 2
 
-#define N_BLOCKS 20
-#define STEPS_PER_BLOCK 1000000
+#define N_BLOCKS 100
+#define STEPS_PER_BLOCK 100000
 
 double AveH(double x, double sigma2, double mu){
-    double x2 = x*x;
-    double x4 = x2*x2;
-    double mu2 = mu*mu;
-    double mu4 = mu2*mu2;
-    double amgis2 = 1/sigma2;
-    double amgis4 = amgis2*amgis2;
+    double x2=x*x;
+    double y=(x2+mu*mu)/sigma2;
 
-    /* double potential_part = x4+2.5*x2; */
-    double potential_part = 0.5*x2;
-    double kinetic_part = (0.0625*(x4+x2*mu2+mu4)*amgis4 - 0.75*(x2+mu2)) / ( amgis2*(1 + exp((x2+mu2)*amgis2)) );
-    return kinetic_part+potential_part;
+    double kin_part = 0.25 * (1 - y)/(1 + exp(-y)) / sigma2;
+    double pot_part = x2 * x2 - 2.5 * x2;
+
+    return kin_part+pot_part;
 }
 
 int main (int argc, char *argv[])
 {
-    double mu=0;
-    double sigma=1;
+    double mu=0.5;
+    double sigma2=1;
     /* Initializing random number generator */
     Random rnd("lib/Random/Primes","lib/Random/seed.in");       
 
     /* Initializing data blocking */
-    auto psi2_gs = [](point<double,1>p){return exp(-2*p.Lenght());};
-    array<function<double(point<double,1>)>,1> f = {[&mu,&sigma](point<double,1>p){return AveH(p[0],sigma*sigma,mu);}};
+    auto psi2_gs = [&mu,&sigma2](point<double,1>p){
+        return exp(-(p[0]-mu)*(p[0]-mu)/sigma2)+exp(-(p[0]+mu)*(p[0]+mu)/sigma2)+2*exp(-0.5*(p[0]*p[0]+mu*mu)/sigma2);
+    };
+    array<function<double(point<double,1>)>,1> f = {[&mu,&sigma2](point<double,1>p){return AveH(p[0],sigma2,mu);}};
 
     array<double,1> p0 = {0};
 

@@ -54,7 +54,7 @@ int main (int argc, char *argv[])
 
     /* Data blocking */
     cout.setf(ios::unitbuf);
-    cout<<"Block proggression:\n";
+    cout<<"Block progression:\n";
     for(int i=0;i<N_BLOCKS;++i){
         opt_drct.Measure();
         opt_drct.EvalBlock(fout_drct);
