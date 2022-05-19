@@ -83,7 +83,7 @@ $(MIS)obj:
 02/obj/021.o: 02/src/021.cpp | 02/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
-022: 02/obj/022.o $(RND)obj/random.o $(MIS)obk/misc.o $(DBH) $(PTH)  | 02/bin
+022: 02/obj/022.o $(RND)obj/random.o $(MIS)obj/misc.o $(DBH) $(PTH)  | 02/bin
 	$(CC) $(CFLAGS) $^ -o 02/bin/022.x 
 02/obj/022.o: 02/src/022.cpp | 02/obj
 	$(CC) $(CFLAGS) -c $< -o $@

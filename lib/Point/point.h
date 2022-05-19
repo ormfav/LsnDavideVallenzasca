@@ -81,7 +81,9 @@ void point<T,N>::Move(){
 
 template <typename T, int N>
 double point<T,N>::Lenght2(){
-    return inner_product(p_.begin(),p_.end(),p_.begin(),0);
+    double l=0;
+    for(T x : p_) l+=x*x;
+    return l;
 }
 template <typename T, int N>
 double point<T,N>::Lenght(){

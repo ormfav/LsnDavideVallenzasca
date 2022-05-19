@@ -5,6 +5,7 @@
 #include <array>
 #include <functional>
 #include <fstream>
+#include <string>
 #include "../Random/random.h"
 #include "../Point/point.h"
 #include "../Misc/misc.h"
@@ -20,6 +21,7 @@ public:
     dataBlocks(int steps, array<double,PARAMS> x0, function<bool(point<double,PARAMS>&)> move, array<function<double(point<double,PARAMS>)>,PROPS> eval_props);
 
     double Measure();
+    double Measure(int, ofstream&);
     void EvalBlock(array<ofstream,PROPS>&);
     void EvalBlock();
 
@@ -95,6 +97,33 @@ double dataBlocks<PARAMS,PROPS>::Measure(){
 }
 
 template<int PARAMS, int PROPS> 
+double dataBlocks<PARAMS,PROPS>::Measure(int interval, ofstream& fout){
+    array<double,PROPS> av2={0};
+    for(double& x : blk_ave_) x=0;
+
+    for(int i=0; i<STEPS_; ++i){
+        params_.Move();
+        if((nblk_*STEPS_+i)%interval==0){
+            string to_print="";
+            for(double x : params_.ToArray()) {to_print.append(to_string(x)); to_print.push_back(',');}
+            to_print.pop_back(); //delete last comma
+            fout<<to_print<<endl;
+        }
+
+        for(int j=0; j<PROPS; ++j) {
+            double aux=eval_props_[j](params_);
+            blk_ave_[j]+=aux; 
+            av2[j]+=aux*aux;
+        }
+    }
+
+    for(int i=0; i<PROPS; ++i) blk_err_[i]=Error(blk_ave_[i],av2[i],STEPS_);
+    for(double& x : blk_ave_) x/=STEPS_;
+    return params_.Rate();
+}
+
+
+template<int PARAMS, int PROPS> 
 void dataBlocks<PARAMS,PROPS>::EvalBlock(array<ofstream,PROPS>& fout){
     if(!nblk_) 
         for (ofstream& x : fout) x << "block_number,block_average,block_error,progressive_average,progressive_error\n" ;
@@ -105,6 +134,7 @@ void dataBlocks<PARAMS,PROPS>::EvalBlock(array<ofstream,PROPS>& fout){
         prg_av2_[i]+=blk_ave_[i]*blk_ave_[i];
         prg_err_[i]=Error(prg_ave_[i], prg_av2_[i], nblk_);
         fout[i] << nblk_ << "," << blk_ave_[i] << "," << blk_err_[i] << "," << prg_ave_[i]/nblk_ << "," << prg_err_[i] << endl;
+        /* cout << nblk_ << "," << blk_ave_[i] << "," << blk_err_[i] << "," << prg_ave_[i]/nblk_ << "," << prg_err_[i] << endl; */
     }
 }
 

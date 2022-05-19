@@ -22,7 +22,7 @@ double Error(double sum,double sum2,int n)
 }
 
 void FileCheck(ofstream& fout, string path){
-    if(!fout.is_open()){
+    if(!fout){
         cerr<<"ERROR: unable to open file "+path<<endl;
         exit(1);
     }
