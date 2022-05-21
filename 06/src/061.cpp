@@ -17,8 +17,13 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 
 using namespace std;
 
+string indir = "06/in/";
+string outdir = "06/out/";
+string savedir = "06/savestate/";
+
 int main() {
   Input();                                 // Inizialization
+  Equilibration();
   for (int iblk = 1; iblk <= nblk; ++iblk) // Simulation
   {
     Reset(iblk); // Reset block averages
@@ -35,7 +40,7 @@ int main() {
 }
 
 void Input(void) {
-  ifstream ReadInput;
+  ifstream ReadInput, Primes, Seed;
 
   cout << "Classic 1D Ising model             " << endl;
   cout << "Monte Carlo simulation             " << endl << endl;
@@ -45,17 +50,23 @@ void Input(void) {
 
   // Read seed for random numbers
   int p1, p2;
-  ifstream Primes("Primes");
+  Primes.open(indir + "Primes");
   Primes >> p1 >> p2;
   Primes.close();
 
-  ifstream input("seed.in");
-  input >> seed[0] >> seed[1] >> seed[2] >> seed[3];
-  rnd.SetRandom(seed, p1, p2);
-  input.close();
-
   // Read input informations
-  ReadInput.open("input.dat");
+  ReadInput.open(indir + "input.dat");
+
+  ReadInput >> metro; // 0=gibbs; 1=metropolis
+  ReadInput >> restart;
+
+  if (restart)
+    Seed.open(savedir + "/seed.out");
+  else
+    Seed.open(indir + "seed.in");
+  Seed >> seed[0] >> seed[1] >> seed[2] >> seed[3];
+  rnd.SetRandom(seed, p1, p2);
+  Seed.close();
 
   ReadInput >> temp;
   beta = 1.0 / temp;
@@ -70,10 +81,8 @@ void Input(void) {
   ReadInput >> h;
   cout << "External field = " << h << endl << endl;
 
-  ReadInput >> metro; // if=1 Metropolis else Gibbs
-  ReadInput >> tc; //equilibration time
+  ReadInput >> tc; // equilibration time
   /* if (metro!=1) tc=0; //gibbs does not need equilibration */
-
 
   ReadInput >> nblk;
 
@@ -95,19 +104,43 @@ void Input(void) {
 
   n_props = 4; // Number of observables
 
-  // initial configuration
-  for (int i = 0; i < nspin; ++i) {
-    if (rnd.Rannyu() >= 0.5)
-      s[i] = 1;
-    else
-      s[i] = -1;
+  if (restart) {
+    cout<<"Restarting from previous configuration\n\n";
+    ifstream ReadConf(savedir + "/config.out" );
+    if(!ReadConf.is_open()){
+      cerr << "PROBLEM: unable to open "+savedir + "/config.out";
+      exit(1);
+    }
+    for (int i = 0; i < nspin; ++i)
+      ReadConf >> s[i];
+    ReadConf.close();
+  } else {
+    // initial configuration T=infty
+    for (int i = 0; i < nspin; ++i) {
+      if (rnd.Rannyu() >= 0.5)
+        s[i] = 1;
+      else
+        s[i] = -1;
+    }
+    //Clear output files
+    // Posso farlo meglio?
+    cout<<"Clearing files in "<<outdir<<endl<<endl;
+    ofstream clear;
+    clear.open(outdir + "output.ene.0", ios::trunc);
+    clear.close();
+    clear.open(outdir + "output.heat.0", ios::trunc);
+    clear.close();
+    clear.open(outdir + "output.mag.0", ios::trunc);
+    clear.close();
+    clear.open(outdir + "output.chi.0", ios::trunc);
+    clear.close();
   }
 
   // Evaluate energy etc. of the initial configuration
   Measure();
 
   // Print initial values for the potential energy and virial
-  cout << "Initial energy = " << walker[iu] / (double)nspin << endl;
+  cout << "Initial energy = " << walker[iu] / (double)nspin << endl<<endl;
 }
 
 void Equilibration() {
@@ -135,6 +168,7 @@ void Move(int metro) {
       }
     } else // Gibbs sampling
     {
+      accepted++;
       deltaE = -2. * Boltzmann(1, o);
       p = 1. / (1. + exp(-beta * deltaE));
       if (rnd.Rannyu() <= p)
@@ -152,12 +186,11 @@ double Boltzmann(int sm, int ip) {
 }
 
 void Measure() {
-  int bin;
   double u = 0.0, m = 0.0;
 
   // cycle over spins
   for (int i = 0; i < nspin; ++i) {
-    u += -J * s[i] * s[Pbc(i + 1)] - 0.5 * h * (s[i] + s[Pbc(i + 1)]);
+    u -= J * s[i] * s[Pbc(i + 1)] + 0.5 * h * (s[i] + s[Pbc(i + 1)]);
     m += s[i];
   }
   // Internal energy
@@ -206,7 +239,7 @@ void Averages(int iblk) // Print results for current block
   cout << "Block number " << iblk << endl;
   cout << "Acceptance rate " << accepted / attempted << endl << endl;
 
-  foutE.open("output.ene.0", ios::app);
+  foutE.open(outdir + "output.ene.0", ios::app);
   stima_u = blk_av[iu] / blk_norm / (double)nspin; // Energy
   glob_av[iu] += stima_u;
   glob_av2[iu] += stima_u * stima_u;
@@ -215,7 +248,7 @@ void Averages(int iblk) // Print results for current block
         << glob_av[iu] / (double)iblk << setw(wd) << err_u << endl;
   foutE.close();
 
-  foutC.open("output.heat.0", ios::app);
+  foutC.open(outdir + "output.heat.0", ios::app);
   stima_c = beta * beta *
             ((blk_av[ic] / blk_norm) -
              (blk_av[iu] / blk_norm) * (blk_av[iu] / blk_norm));
@@ -227,7 +260,7 @@ void Averages(int iblk) // Print results for current block
         << glob_av[ic] / (double)iblk << setw(wd) << err_c << endl;
   foutC.close();
 
-  foutM.open("output.mag.0", ios::app);
+  foutM.open(outdir + "output.mag.0", ios::app);
   stima_m = blk_av[im] / blk_norm / (double)nspin;
   glob_av[im] += stima_m;
   glob_av2[im] += stima_m * stima_m;
@@ -236,7 +269,7 @@ void Averages(int iblk) // Print results for current block
         << glob_av[im] / (double)iblk << setw(wd) << err_m << endl;
   foutM.close();
 
-  foutX.open("output.chi.0", ios::app);
+  foutX.open(outdir + "output.chi.0", ios::app);
   stima_x = beta * blk_av[ix] / blk_norm / (double)nspin;
   glob_av[ix] += stima_x;
   glob_av2[ix] += stima_x * stima_x;
@@ -252,13 +285,14 @@ void ConfFinal(void) {
   ofstream WriteConf;
 
   cout << "Print final configuration to file config.final " << endl << endl;
-  WriteConf.open("config.final");
+  WriteConf.open(savedir+"config.final");
   for (int i = 0; i < nspin; ++i) {
     WriteConf << s[i] << endl;
   }
   WriteConf.close();
 
-  rnd.SaveSeed();
+  string tempstr = savedir + "/seed.out";
+  rnd.SaveSeed(tempstr.c_str());
 }
 
 int Pbc(int i) // Algorithm for periodic boundary conditions

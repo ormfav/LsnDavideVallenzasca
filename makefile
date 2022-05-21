@@ -3,11 +3,12 @@ CFLAGS = -Wall -O3 --std=c++11
 
 .PHONY: all clean \
 	01 011 012 013 	01clean 011clean 012clean 013clean \
-	02 021 022 		02clean 021clean 022clean \
-	03 031 			03clean 031clean \
-	04 041		 	04clean 041clean \
-	05 051 			05clean 051clean \
-	08 081 082		05clean 081clean 082clean 
+	02 021 022 		  02clean 021clean 022clean \
+	03 031 			    03clean 031clean \
+	04 041		 	    04clean 041clean \
+	05 051 			    05clean 051clean \
+	06 061 			    06clean 061clean \
+	08 081 082		  08clean 081clean 082clean 
 
 all: 01 02 03 04 05 08
 clean: 01clean 02clean 03clean 04clean 05clean 08clean
@@ -148,6 +149,21 @@ $(MIS)obj:
 	ls $@
 05/obj:
 	ls $@
+
+
+#Esercitazione 6
+06: 061 
+
+061: 06/obj/061.o $(RND)obj/random.o | 06/bin
+	$(CC) $(CFLAGS) $^ -o 06/bin/061.x 
+06/obj/061.o: 06/src/061.cpp | 06/obj
+	$(CC) $(CFLAGS) -c $< -o $@ 
+
+06/bin:
+	ls $@
+06/obj:
+	ls $@
+
 
 #Esercitazione 8
 08: 081 082

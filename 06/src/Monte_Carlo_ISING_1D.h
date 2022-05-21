@@ -12,7 +12,7 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 #define __ISING__
 
 //Random numbers
-#include "random.h"
+#include "../../lib/Random/random.h"
 int seed[4];
 Random rnd;
 
@@ -37,7 +37,7 @@ int nspin;
 double beta,temp,J,h;
 
 // simulation
-int nstep, nblk, metro;
+int nstep, nblk, metro, restart;
 int tc; //equilibration time
 
 //functions
@@ -47,6 +47,7 @@ void Accumulate(void);
 void Averages(int);
 void Move(int);
 void ConfFinal(void);
+void Equilibration();
 void Measure(void);
 double Boltzmann(int, int);
 int Pbc(int);

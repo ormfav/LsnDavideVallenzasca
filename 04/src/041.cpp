@@ -449,7 +449,7 @@ void ConfFinal(void) {
 void ConfXYZ(int nconf) { // Write configuration in .xyz format
   ofstream WriteXYZ;
 
-  WriteXYZ.open(outdir+"XYZ/config_" + to_string(nconf) + ".xyz");
+  WriteXYZ.open(outdir + "XYZ/config_" + to_string(nconf) + ".xyz");
   WriteXYZ << npart << endl;
   WriteXYZ << "This is only a comment!" << endl;
   for (int i = 0; i < npart; ++i) {
