@@ -38,6 +38,7 @@ double beta,temp,J,h;
 
 // simulation
 int nstep, nblk, metro;
+int tc; //equilibration time
 
 //functions
 void Input(void);
