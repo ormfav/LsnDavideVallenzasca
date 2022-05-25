@@ -18,7 +18,7 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 
 using namespace std;
 
-string state = "liquid";
+string state = "gas";
 string indir = "04/in/";
 string outdir = "04/out/";
 string savedir = "04/savestates/";
