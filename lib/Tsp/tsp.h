@@ -1,89 +1,66 @@
 #ifndef __Tsp__
 #define __Tsp__
 
-#include "../../lib/Random/random.h"
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <iostream>
-#include <numeric>
-#include <set>
+#include "../Random/random.h"
+#include <cstddef>
+#include <iterator>
 #include <vector>
 
 using namespace std;
 
-/* Members are x^2+y^2 and -2xy: when evaluating the distance from city1 */
-/* to city2 we do
- * (x1-x2)^2+(y1-y2)^2=(x1^2+y1^2)+(-2x1y1)+(x2^2+y2^2)+(-2x2y2)*/
-/* Since we are doing this many times it's easyer to carry out those operations
- * when */
-/* creating the object */
-struct City {
-  /* Methods */
-  City(double, double);
-
-  double operator-(City c) { return a + b + c.a + c.b; }; // distance^2
-
-  array<double, 2> GetCoords();
-
-  /* Members */
-  double a;
-  double b;
-};
-
-/***************************************/
-
-struct Chromosome {
-  /* Methods */
+template <typename T> class Chromosome{
+public:
   Chromosome(){};
-  Chromosome(vector<City>, Random &);
+  void EvalCost(vector<T>&);
 
-  int &operator[](int i) { return this->path[i]; };
-  bool operator>(Chromosome &c) { return this->cost > c.cost; };
-  bool operator<(Chromosome &c) { return this->cost < c.cost; };
+  int &operator[](int i) { return genes_[i]; };
+  bool operator>(Chromosome &c) { return cost_ > c.cost; };
+  bool operator<(Chromosome &c) { return cost_ < c.cost; };
   bool operator<=(Chromosome &c) { return !(*this > c); };
   bool operator>=(Chromosome &c) { return !(*this < c); };
 
-  int Size(){return path.size();};
+  size_t Size(){ return genes_.size();};
 
-  void EvalCost(vector<City>);
+  double p_permvalues;
+  void MutPermValues(int i, int j);
+  double p_permintervals;
+  void MutPermIntervals(int begin1, int begin2, int len);
+  double p_cycle;
+  void MutCycle(int begin, int end, int steps);
+  double p_mirror;
+  void MutMirror(int begin, int end);
 
-  void MutationPermute(int, int);
-  void MutationPermuteInterval(int start1, int start2, int lenght);
-  void MutationCycle(int start, int end, int steps);
-  void MutationMirror(int start, int end);
+  void Check();
 
-  /* Members */
-  vector<int> path;
-  double cost;
+private:
+  vector<int> genes_;
+  double cost_;
 };
 
-/***************************************/
-
-// set elite
-struct Population {
-
-  /* Methods */
-  Population(vector<City>, int);
-  int Select(Random &);
-  int Select(Random &, int);
-  double BestCost(double frac); //Best cost averaged over the (frac*100)% best elements - at least 1
-
-  void Sort();
-
-  void NextGeneration(vector<City>, Random&);
 
 
-  /* Members */
-  vector<Chromosome> p;
-  int igen;
+/******************/
 
-  double selection_factor;
-  // Number of elites
-  double elite;
-  // Probabilites
-  double mutation;
-  double crossover;
+template <typename T> class Generation{
+public:
+  Generation(){};
+
+  size_t Select(Random&);
+  size_t Select(Random&, size_t);
+
+  void Evolve(Random&);
+  double BestCost(double);
+
+
+private:
+  vector<Chromosome<T>> population_;
+  vector<T> *dict_;
+  int igen_;
+  double crossover_;
+  double selection_;
+  /* int elite; */
 };
 
-#endif // !__Tsp__
+
+
+#endif

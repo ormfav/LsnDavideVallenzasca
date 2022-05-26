@@ -8,7 +8,8 @@ CFLAGS = -Wall -O3 --std=c++11
 	04 041		 	    04clean 041clean \
 	05 051 			    05clean 051clean \
 	06 061 			    06clean 061clean \
-	08 081 082		  08clean 081clean 082clean 
+	08 081 082		  08clean 081clean 082clean \
+	09 091          09clean 091clean 
 
 all: 01 02 03 04 05 08
 clean: 01clean 02clean 03clean 04clean 05clean 08clean
@@ -30,11 +31,20 @@ PTH = lib/Point/point.h
 #metropolis funcions
 MEH = lib/Metropolis/metropolis.h
 
+#Miscellaneous functions
 MIS = lib/Misc/
 $(MIS)obj/misc.o: $(MIS)misc.cpp | $(MIS)obj
 	$(CC) $(CFLAGS) -c $^ -o $@
 $(MIS)obj:
 	mkdir -p $@
+
+#Travelling salesman problem
+TSP = lib/Tsp/
+$(TSP)obj/tsp.o: $(TSP)tsp.cpp | $(TSP)obj
+	$(CC) $(CFLAGS) -c $^ -o $@
+$(TSP)obj:
+	mkdir -p $@
+
 
 #Esercitazione 1
 01: 011 012 013
@@ -176,4 +186,17 @@ $(MIS)obj:
 08/bin:
 	ls $@
 08/obj:
+	ls $@
+
+#Esercitazione 9
+09: 091 
+
+091: 09/obj/091.o $(RND)obj/random.o $(MIS)obj/misc.o $(TSP)obj/tsp.o | 09/bin
+	$(CC) $(CFLAGS) $^ -o 09/bin/091.x 
+09/obj/091.o: 09/src/091.cpp | 09/obj
+	$(CC) $(CFLAGS) -c $< -o $@ 
+
+09/bin:
+	ls $@
+09/obj:
 	ls $@

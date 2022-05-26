@@ -1,0 +1,67 @@
+#ifndef __Tsp__
+#define __Tsp__
+#include "../../lib/Random/random.h"
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <iostream>
+#include <numeric>
+#include <set>
+#include <vector>
+
+using namespace std;
+
+struct Chromosome {
+  /* Methods */
+  Chromosome(){};
+  Chromosome(vector<City>, Random &);
+
+  int &operator[](int i) { return this->path[i]; };
+  bool operator>(Chromosome &c) { return this->cost > c.cost; };
+  bool operator<(Chromosome &c) { return this->cost < c.cost; };
+  bool operator<=(Chromosome &c) { return !(*this > c); };
+  bool operator>=(Chromosome &c) { return !(*this < c); };
+
+  int Size() { return path.size(); };
+
+  void EvalCost(vector<City>);
+
+  void MutationPermute(int, int);
+  void MutationPermuteInterval(int start1, int start2, int lenght);
+  void MutationCycle(int start, int end, int steps);
+  void MutationMirror(int start, int end);
+
+  /* Members */
+  vector<int> path;
+  double cost;
+};
+
+/***************************************/
+
+// set elite
+struct Population {
+
+  /* Methods */
+  Population(vector<City>, int, Random&, int selection, int mutation, int crossover);
+  int Select(Random &);
+  int Select(Random &, int);
+  double BestCost(double frac); // Best cost averaged over the (frac*100)% best
+                                // elements - at least 1
+
+  void Sort();
+
+  void NextGeneration(vector<City>, Random &);
+
+  /* Members */
+  vector<Chromosome> p;
+  int igen;
+
+  double selection_factor;
+  // Number of elites
+  double elite;
+  // Probabilites
+  double mutation;
+  double crossover;
+};
+
+#endif // !__Tsp__
