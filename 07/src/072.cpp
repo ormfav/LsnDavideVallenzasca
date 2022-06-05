@@ -18,23 +18,26 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 
 using namespace std;
 
-string state = "liquid";
-string indir = "04/in/";
-string outdir = "04/out/";
-string savedir = "04/savestates/";
+string state = "solid";
+string indir = "07/in/";
+string outdir = "07/out/";
+string savedir = "07/savestates/";
 
 int main() {
+  ofstream Epot(outdir + state + "/output_epot_instant.dat", ios::app);
   cout << "Simulating " + state + " phase\n";
-  Input();                                   // Inizialization
+  Input(); // Inizialization
+  if(equi_steps) Equilibration();
+  /* Still working in blocks to check acceptance */
   for (int iblk = 1; iblk <= nblk; iblk++) { // Simulation
-    Reset(iblk);                             // Reset block averages
     for (int istep = 1; istep <= nstep; istep++) {
       Move();
       Measure();
-      Accumulate(); // Update block averages
+      Epot << walker[iv] / (double)npart + vtail << endl;
     }
-    Averages(iblk); // Print results for current block
+    BlkInfo(iblk);
   }
+  Epot.close();
   ConfFinal(); // Write final configuration
 
   return 0;
@@ -104,17 +107,25 @@ void Input(void) {
   ReadInput >> rcut;
   cout << "Cutoff of the interatomic potential = " << rcut << endl << endl;
 
+  /* Tail corrections for potential energy and pressure */
+  double aux = 8. * pi * rho;
+  vtail = aux / (9. * pow(rcut, 9)) - aux / (3. * pow(rcut, 3));
+  ptail = 4. * aux / (9. * pow(rcut, 9)) - 2. * aux / (3. * pow(rcut, 3));
+
   ReadInput >> delta;
 
   ReadInput >> nblk;
 
   ReadInput >> nstep;
 
+  ReadInput >> equi_steps;
+
   cout << "The program perform Metropolis moves with uniform translations"
        << endl;
   cout << "Moves parameter = " << delta << endl;
   cout << "Number of blocks = " << nblk << endl;
   cout << "Number of steps in one block = " << nstep << endl << endl;
+  cout << "Number of steps in equilibration phase = " << equi_steps<< endl << endl;
   ReadInput.close();
 
   // Prepare arrays for measurements
@@ -124,6 +135,10 @@ void Input(void) {
   ie = 3;      // Total energy
   ip = 4;      // Pressure
   n_props = 5; // Number of observables
+  // prepare hystogram for g(r), stored in walker starting from
+  // n_props (5)
+  nbins = 100;
+  bin_size = box / (2. * nbins);
 
   // Read initial configuration
   cout << "Read initial configuration" << endl << endl;
@@ -188,13 +203,18 @@ void Input(void) {
   Measure();
 
   // Print initial values for measured properties
-  cout << "Initial potential energy = " << walker[iv] / (double)npart << endl;
+  cout << "Initial potential energy = " << walker[iv] / (double)npart + vtail
+       << endl;
   cout << "Initial temperature      = " << walker[it] << endl;
   cout << "Initial kinetic energy   = " << walker[ik] / (double)npart << endl;
   cout << "Initial total energy     = " << walker[ie] / (double)npart << endl;
-  cout << "Initial pressure         = " << walker[ip]  << endl;
+  cout << "Initial pressure         = " << walker[ip] + ptail << endl; // DEVO DIVIDERE PER NPART???
 
   return;
+}
+
+void Equilibration(){ 
+  for(int i = 0; i<equi_steps;++i) Move();
 }
 
 void Move() {
@@ -318,6 +338,9 @@ void Measure() // Properties measurement
 {
   double v = 0.0, kin = 0.0, w = 0.0;
   double dx, dy, dz, dr;
+  /* Reset slots for g(r) histogram */
+  for (int i = n_props; i < n_props + nbins; ++i)
+    walker[i] = 0.0;
 
   // Evaluate potential energy and virial
   // cycle over pairs of particles
@@ -330,6 +353,9 @@ void Measure() // Properties measurement
 
       dr = dx * dx + dy * dy + dz * dz;
       dr = sqrt(dr);
+
+      /* Update the histogram  */
+      walker[n_props + (int)(dr / bin_size)] += 2;
 
       if (dr < rcut) {
         v += (1.0 / pow(dr, 12) - 1.0 / pow(dr, 6));
@@ -378,22 +404,29 @@ void Accumulate(void) // Update block averages
   blk_norm = blk_norm + 1.0;
 }
 
+void BlkInfo(int iblk) {
+  cout << "Block number " << iblk << endl;
+  cout << "Acceptance rate " << accepted / attempted << endl << endl;
+  cout << "----------------------------" << endl << endl;
+}
+
 void Averages(int iblk) // Print results for current block
 {
 
-  ofstream Epot, Ekin, Etot, Temp, Pres;
+  ofstream Epot, Ekin, Etot, Temp, Pres, Gblk;
   const int wd = 12;
 
-  cout << "Block number " << iblk << endl;
-  cout << "Acceptance rate " << accepted / attempted << endl << endl;
+  /* cout << "Block number " << iblk << endl; */
+  /* cout << "Acceptance rate " << accepted / attempted << endl << endl; */
 
   Epot.open(outdir + state + "/output_epot.dat", ios::app);
   Ekin.open(outdir + state + "/output_ekin.dat", ios::app);
   Temp.open(outdir + state + "/output_temp.dat", ios::app);
   Etot.open(outdir + state + "/output_etot.dat", ios::app);
   Pres.open(outdir + state + "/output_pres.dat", ios::app);
+  Gblk.open(outdir + state + "/output_gblk.dat", ios::app);
 
-  stima_pot = blk_av[iv] / blk_norm / (double)npart; // Potential energy
+  stima_pot = blk_av[iv] / blk_norm / (double)npart + vtail; // Potential energy
   glob_av[iv] += stima_pot;
   glob_av2[iv] += stima_pot * stima_pot;
   err_pot = Error(glob_av[iv], glob_av2[iv], iblk);
@@ -413,7 +446,7 @@ void Averages(int iblk) // Print results for current block
   glob_av2[it] += stima_temp * stima_temp;
   err_temp = Error(glob_av[it], glob_av2[it], iblk);
 
-  stima_pres = blk_av[ip] / blk_norm; // Pressure
+  stima_pres = blk_av[ip] / blk_norm + ptail; // Pressure
   glob_av[ip] += stima_pres;
   glob_av2[ip] += stima_pres * stima_pres;
   err_pres = Error(glob_av[ip], glob_av2[ip], iblk);
@@ -433,14 +466,40 @@ void Averages(int iblk) // Print results for current block
   // Pressure
   Pres << setw(wd) << iblk << setw(wd) << stima_pres << setw(wd)
        << glob_av[ip] / (double)iblk << setw(wd) << err_pres << endl;
+  // g(r)
+  for (int ihist = 0; ihist < nbins; ++ihist) {
+    int iwalk = n_props + ihist;
+    double r = ihist * bin_size;
+    double dV = 4. * pi / 3. * (pow((r + bin_size), 3) - pow(r, 3));
+    double norm = blk_norm * rho * npart * dV;
 
-  cout << "----------------------------" << endl << endl;
+    stima_gdir = blk_av[iwalk] / norm;
+
+    glob_av[iwalk] += stima_gdir;
+    glob_av2[iwalk] += stima_gdir * stima_gdir;
+    err_gdir = Error(glob_av[iwalk], glob_av2[iwalk], iblk);
+
+    Gblk << setw(wd) << iblk << setw(wd) << r << setw(wd) << stima_gdir
+         << setw(wd) << glob_av[iwalk] / (double)iblk << setw(wd) << err_gdir
+         << endl;
+
+    if (iblk == nblk) {
+      ofstream Gfin(outdir + state + "/output_gfin.dat", ios::app);
+      Gfin << setw(wd) << iblk << setw(wd) << r << setw(wd) << stima_gdir
+           << setw(wd) << glob_av[iwalk] / (double)iblk << setw(wd) << err_gdir
+           << endl;
+      Gfin.close();
+    }
+  }
+
+  /* cout << "----------------------------" << endl << endl; */
 
   Epot.close();
   Ekin.close();
   Etot.close();
   Temp.close();
   Pres.close();
+  Gblk.close();
 }
 
 void ConfFinal(void) {

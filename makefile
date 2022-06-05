@@ -7,7 +7,8 @@ CFLAGS = -Wall -O3 --std=c++11
 	03 031 			    03clean 031clean \
 	04 041		 	    04clean 041clean \
 	05 051 			    05clean 051clean \
-	06 061 			    06clean 061clean \
+	07 061 			    06clean 061clean \
+	07 072 074			06clean 072clean 074clean \
 	08 081 082		  08clean 081clean 082clean \
 	09 091          09clean 091clean 
 
@@ -174,6 +175,26 @@ $(TSP)obj:
 06/obj:
 	ls $@
 
+#Esercitazione 7
+07: 072 074
+
+072: 07/obj/072.o $(RND)obj/random.o | 07/bin
+	$(CC) $(CFLAGS) $^ -o 07/bin/072.x 
+07/obj/072.o: 07/src/072.cpp | 07/obj
+	$(CC) $(CFLAGS) -c $< -o $@ 
+
+074: 07/obj/074.o $(RND)obj/random.o | 07/bin
+	$(CC) $(CFLAGS) $^ -o 07/bin/074.x 
+07/obj/074.o: 07/src/074.cpp | 07/obj
+	$(CC) $(CFLAGS) -c $< -o $@ 
+
+
+07/bin:
+	ls $@
+07/obj:
+	ls $@
+
+
 
 #Esercitazione 8
 08: 081 082
@@ -182,6 +203,12 @@ $(TSP)obj:
 	$(CC) $(CFLAGS) $^ -o 08/bin/081.x 
 08/obj/081.o: 08/src/081.cpp | 08/obj
 	$(CC) $(CFLAGS) -c $< -o $@ 
+
+082: 08/obj/082.o $(RND)obj/random.o $(MIS)obj/misc.o $(DBH) $(PTH) $(MEH) | 08/bin
+	$(CC) $(CFLAGS) $^ -o 08/bin/082.x 
+08/obj/082.o: 08/src/082.cpp | 08/obj
+	$(CC) $(CFLAGS) -c $< -o $@ 
+
 
 08/bin:
 	ls $@

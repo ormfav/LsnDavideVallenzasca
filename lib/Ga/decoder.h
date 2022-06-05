@@ -8,8 +8,11 @@
 using namespace std;
 
 template <typename T> struct Decoder {
-  vector<T> dict;
-  function<double(vector<T>)> costf;
+  Decoder(){}
+  Decoder(vector<T> v, function<double(vector<T>)> f) : dict_(v), costf_(f) {}
+
+  vector<T> dict_;
+  function<double(vector<T>)> costf_;
 };
 
 #endif
