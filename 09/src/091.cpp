@@ -1,10 +1,10 @@
-#include "../../lib/Ga/crossovers.h"
-#include "../../lib/Ga/decoder.h"
-#include "../../lib/Ga/individual.h"
-#include "../../lib/Ga/mutations.h"
-#include "../../lib/Ga/population.h"
+#include "../../lib/Ga/include/decoder.h"
+#include "../../lib/Ga/include/individual.h"
+#include "../../lib/Ga/include/population.h"
+#include "../include/crossovers.h"
+#include "../include/mutations.h"
 
-#include "city.h"
+#include "../include/city.h"
 
 #include "../../lib/Misc/misc.h"
 #include "../../lib/Random/random.h"
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 
   /* Cities on a square */
   Decoder<City> square;
-  circle.costf_ = costfunction;
+  square.costf_ = costfunction;
   set<City> aux;
   do {
     aux.emplace(rnd.Rannyu(), rnd.Rannyu());
@@ -73,15 +73,15 @@ int main(int argc, char *argv[]) {
     x = rnd.Rannyu(1, N_CITIES - 2);
     y = rnd.Rannyu(x, N_CITIES);
     z = rnd.Rannyu(1, N_CITIES);
-    cycleInterval m3(P_CYCLEINT, x, y, z);
+    cycleInterval m3(P_CYCLEINT, x, y-x, z);
 
     x = rnd.Rannyu(1, N_CITIES - 2);
     y = rnd.Rannyu(x, N_CITIES);
-    mirrorInterval m4(P_MIRRORINT, x, y);
+    mirrorInterval m4(P_MIRRORINT, x, y-x);
 
     /* Evolving population*/
-    pop_circle.Evolve(rnd, SELECTION, crs, {m1, m2, m3, m4});
-    pop_square.Evolve(rnd, SELECTION, crs, {m1, m2, m3, m4});
+    pop_circle.Evolve(rnd, SELECTION, crs, {&m1, &m2, &m3, &m4});
+    pop_square.Evolve(rnd, SELECTION, crs, {&m1, &m2, &m3, &m4});
   }
 
   /* ofstream fout_circle; */
@@ -95,20 +95,20 @@ int main(int argc, char *argv[]) {
   /* } */
 
   /* Cities in a square */
-  set<City> aux;
-  do {
-    aux.emplace(rnd.Rannyu(), rnd.Rannyu());
-  } while (aux.size() != N_CITIES);
-  vector<City> square(aux.begin(), aux.end());
-
-  array<ofstream, 2> fout;
-  array<string, 2> path = {"09/out/091-costs_circle.csv",
-                           "09/out/091-costs_square.csv"};
-  for (int i = 0; i < 2; ++i) {
-    fout[i].open(path[i]);
-    FileCheck(fout[i], path[i]);
-    fout[i] << "best,average_best_half\n";
-  }
+  /* set<City> aux; */
+  /* do { */
+  /*   aux.emplace(rnd.Rannyu(), rnd.Rannyu()); */
+  /* } while (aux.size() != N_CITIES); */
+  /* vector<City> square(aux.begin(), aux.end()); */
+  /*  */
+  /* array<ofstream, 2> fout; */
+  /* array<string, 2> path = {"09/out/091-costs_circle.csv", */
+  /*                          "09/out/091-costs_square.csv"}; */
+  /* for (int i = 0; i < 2; ++i) { */
+  /*   fout[i].open(path[i]); */
+  /*   FileCheck(fout[i], path[i]); */
+  /*   fout[i] << "best,average_best_half\n"; */
+  /* } */
 
   /* ofstream fout_circle, fout_square; */
   /* string path_square = "09/out/091-coord_square.csv", */
