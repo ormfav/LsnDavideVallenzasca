@@ -96,7 +96,7 @@ void Input(void) {
 
   ReadInput >> rho;
   cout << "Density of particles = " << rho << endl;
-  vol = (double)npart / rho;
+  vol = (double)npart / rho; //Da qui lato della cella!!
   box = pow(vol, 1.0 / 3.0);
   cout << "Volume of the simulation box = " << vol << endl;
   cout << "Edge of the simulation box = " << box << endl;

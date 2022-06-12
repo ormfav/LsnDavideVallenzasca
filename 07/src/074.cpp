@@ -18,15 +18,16 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 
 using namespace std;
 
-string state = "gas";
+string state = "solid";
 string indir = "07/in/";
 string outdir = "07/out/";
 string savedir = "07/savestates/";
 
 int main() {
   cout << "Simulating " + state + " phase\n";
-  Input();                                   // Inizialization
-  if(equi_steps) Equilibration();
+  Input(); // Inizialization
+  if (equi_steps)
+    Equilibration();
   for (int iblk = 1; iblk <= nblk; iblk++) { // Simulation
     Reset(iblk);                             // Reset block averages
     for (int istep = 1; istep <= nstep; istep++) {
@@ -123,7 +124,8 @@ void Input(void) {
   cout << "Moves parameter = " << delta << endl;
   cout << "Number of blocks = " << nblk << endl;
   cout << "Number of steps in one block = " << nstep << endl << endl;
-  cout << "Number of steps in equilibration phase = " << equi_steps<< endl << endl;
+  cout << "Number of steps in equilibration phase = " << equi_steps << endl
+       << endl;
   ReadInput.close();
 
   // Prepare arrays for measurements
@@ -133,10 +135,11 @@ void Input(void) {
   ie = 3;      // Total energy
   ip = 4;      // Pressure
   n_props = 5; // Number of observables
-  // prepare hystogram for g(r), stored in walker starting from
+  // prepare histogram for g(r), stored in walker starting from
   // n_props (5)
   nbins = 100;
-  bin_size = box / (2. * nbins);
+  /* PERCHé BOX/2?? */
+  bin_size = 0.5 * box / nbins;
 
   // Read initial configuration
   cout << "Read initial configuration" << endl << endl;
@@ -212,10 +215,10 @@ void Input(void) {
   return;
 }
 
-void Equilibration(){ 
-  for(int i = 0; i<equi_steps;++i) Move();
+void Equilibration() {
+  for (int i = 0; i < equi_steps; ++i)
+    Move();
 }
-
 
 void Move() {
   int o;
@@ -338,9 +341,6 @@ void Measure() // Properties measurement
 {
   double v = 0.0, kin = 0.0, w = 0.0;
   double dx, dy, dz, dr;
-  /* Reset slots for g(r) histogram */
-  for (int i = n_props; i < n_props + nbins; ++i)
-    walker[i] = 0.0;
 
   // Evaluate potential energy and virial
   // cycle over pairs of particles
@@ -354,6 +354,7 @@ void Measure() // Properties measurement
       dr = dx * dx + dy * dy + dz * dz;
       dr = sqrt(dr);
 
+      /* DEVO RESETTARE??? */
       /* Update the histogram  */
       walker[n_props + (int)(dr / bin_size)] += 2;
 
@@ -390,6 +391,10 @@ void Reset(int iblk) // Reset block averages
   for (int i = 0; i < n_props; ++i) {
     blk_av[i] = 0;
   }
+  /* Reset slots for g(r) histogram */
+  for (int i = n_props; i < n_props + nbins; ++i)
+    walker[i] = 0.0;
+
   blk_norm = 0;
   attempted = 0;
   accepted = 0;
@@ -419,6 +424,7 @@ void Averages(int iblk) // Print results for current block
   Etot.open(outdir + state + "/output_etot.dat", ios::app);
   Pres.open(outdir + state + "/output_pres.dat", ios::app);
   Gblk.open(outdir + state + "/output_gblk.dat", ios::app);
+  Gblk << iblk;
 
   stima_pot = blk_av[iv] / blk_norm / (double)npart + vtail; // Potential energy
   glob_av[iv] += stima_pot;
@@ -460,6 +466,7 @@ void Averages(int iblk) // Print results for current block
   // Pressure
   Pres << setw(wd) << iblk << setw(wd) << stima_pres << setw(wd)
        << glob_av[ip] / (double)iblk << setw(wd) << err_pres << endl;
+
   // g(r)
   for (int ihist = 0; ihist < nbins; ++ihist) {
     int iwalk = n_props + ihist;
@@ -467,24 +474,22 @@ void Averages(int iblk) // Print results for current block
     double dV = 4. * pi / 3. * (pow((r + bin_size), 3) - pow(r, 3));
     double norm = blk_norm * rho * npart * dV;
 
-    stima_gdir = blk_av[iwalk] / norm;
+    stima_gdir = walker[iwalk] / norm;
+
+    Gblk << setw(wd) << stima_gdir;
 
     glob_av[iwalk] += stima_gdir;
     glob_av2[iwalk] += stima_gdir * stima_gdir;
-    err_gdir = Error(glob_av[iwalk], glob_av2[iwalk], iblk);
-
-    Gblk << setw(wd) << iblk << setw(wd) << r << setw(wd) << stima_gdir
-         << setw(wd) << glob_av[iwalk] / (double)iblk << setw(wd) << err_gdir
-         << endl;
 
     if (iblk == nblk) {
+      err_gdir = Error(glob_av[iwalk], glob_av2[iwalk], iblk);
       ofstream Gfin(outdir + state + "/output_gfin.dat", ios::app);
-      Gfin << setw(wd) << iblk << setw(wd) << r << setw(wd) << stima_gdir
-           << setw(wd) << glob_av[iwalk] / (double)iblk << setw(wd) << err_gdir
+      Gfin << setw(wd) << r << setw(wd) << glob_av[iwalk] / (double)iblk << setw(wd) << err_gdir
            << endl;
       Gfin.close();
     }
   }
+  Gblk << endl;
 
   cout << "----------------------------" << endl << endl;
 
