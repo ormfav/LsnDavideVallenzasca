@@ -7,7 +7,7 @@
 #include "../include/city.h"
 
 #include "../../lib/Misc/misc.h"
-#include "../../lib/Random/random.h"
+#include "../../lib/Random/include/random.h"
 
 #include <algorithm>
 #include <iostream>
@@ -17,43 +17,83 @@ using namespace std;
 
 /* #include "../in/091-conf.inl" */
 #define N_CITIES 34
-#define N_GEN 20
-#define INDIVIDUALS 50
+#define N_GEN 1000
+#define INDIVIDUALS 10000
 
 #define SELECTION 3
-#define P_CROSSOVER 0.4
-#define P_PERMELM 0.05
-#define P_PERMINT 0.05
-#define P_CYCLEINT 0.05
-#define P_MIRRORINT 0.05
+#define P_CROSSOVER 0.6
+#define P_PERMELM 0.1
+#define P_PERMINT 0.1
+#define P_CYCLEINT 0.1
+#define P_MIRRORINT 0.1
 
 int main(int argc, char *argv[]) {
-  Random rnd("lib/Random/Primes", "lib/Random/seed.in");
+  Random rnd("in/Primes", "in/seed.in");
 
   /* Cities on a circumference */
-  Decoder<City> circle;
-  circle.costf_ = costfunction;
+  Decoder<City> dec_circle;
+  dec_circle.costf_ = costfunction;
   set<double> angles;
   do {
     angles.emplace(rnd.Rannyu() * 2 * M_PI);
   } while (angles.size() != N_CITIES);
-  circle.dict_.reserve(N_CITIES);
+  dec_circle.dict_.reserve(N_CITIES);
   for (double x : angles)
-    circle.dict_.emplace_back(cos(x), sin(x));
+    dec_circle.dict_.emplace_back(cos(x), sin(x));
 
   /* Cities on a square */
-  Decoder<City> square;
-  square.costf_ = costfunction;
+  Decoder<City> dec_square;
+  dec_square.costf_ = costfunction;
   set<City> aux;
   do {
     aux.emplace(rnd.Rannyu(), rnd.Rannyu());
   } while (aux.size() != N_CITIES);
-  square.dict_.assign(aux.begin(), aux.end());
+  dec_square.dict_.assign(aux.begin(), aux.end());
 
-  /* Core of the GA */
-  Population<City> pop_circle(INDIVIDUALS, circle, rnd);
-  Population<City> pop_square(INDIVIDUALS, square, rnd);
-  for (size_t i = 0; i < N_GEN; ++i) {
+  Population<City> pop_circle(INDIVIDUALS, dec_circle, rnd);
+  Population<City> pop_square(INDIVIDUALS, dec_square, rnd);
+
+  /* Output first path */
+  array<ofstream, 2> fout_cities;
+  array<string, 2> path_cities = {"out/091-firstpath_circle.csv",
+                                  "out/091-firstpath_square.csv"};
+  array<vector<City>, 2> cities = {pop_circle.GetBest().ApplyTo(&dec_circle),
+                                   pop_square.GetBest().ApplyTo(&dec_square)};
+
+  for (size_t i = 0; i < 2; ++i) {
+    ofstream &fout = fout_cities[i];
+    string &path = path_cities[i];
+    vector<City> &city = cities[i];
+
+    fout.open(path);
+    FileCheck(fout, path);
+    fout << "x,y\n";
+    for (auto x : city)
+      fout << x.a << "," << x.b << endl;
+
+    fout.close();
+  }
+
+  /* Preparing output costs */
+  array<ofstream, 4> fout_bestcost;
+  array<string, 4> path_bestcost = {
+      "out/091-bestcost_circle.csv", "out/091-besthalfcost_circle.csv",
+      "out/091-bestcost_square.csv", "out/091-besthalfcost_square.csv"};
+  for (size_t i = 0; i < 4; ++i) {
+    fout_bestcost[i].open(path_bestcost[i]);
+    FileCheck(fout_bestcost[i], path_bestcost[i]);
+    fout_bestcost[i] << "gen,cost\n";
+  }
+
+  /* Evolving without elite */
+  for (size_t i = 0; i < size_t(N_GEN * 0.5); ++i) {
+    cout << "Generation: " << (i + 1) << "/" << N_GEN << endl;
+    /* Output costs */
+    fout_bestcost[0] << i << "," << pop_circle.BestCost(0) << endl;
+    fout_bestcost[1] << i << "," << pop_circle.BestCost(0.5) << endl;
+    fout_bestcost[2] << i << "," << pop_square.BestCost(0) << endl;
+    fout_bestcost[3] << i << "," << pop_square.BestCost(0.5) << endl;
+
     /* Building crossover */
     fixHead crs(P_CROSSOVER, rnd.Rannyu(1, N_CITIES - 1));
 
@@ -65,64 +105,89 @@ int main(int argc, char *argv[]) {
     } while (x == y);
     permuteElements m1(P_PERMELM, x, y);
 
-    x = rnd.Rannyu(1, N_CITIES * 0.5);
+    x = rnd.Rannyu(1, int(N_CITIES * 0.5));
     y = rnd.Rannyu(x, N_CITIES);
-    z = rnd.Rannyu(1, min(y - x, N_CITIES));
+    z = rnd.Rannyu(1, min(y - x, N_CITIES - y));
     permuteIntervals m2(P_PERMINT, x, y, z);
 
     x = rnd.Rannyu(1, N_CITIES - 2);
-    y = rnd.Rannyu(x, N_CITIES);
+    y = rnd.Rannyu(x + 1, N_CITIES);
     z = rnd.Rannyu(1, N_CITIES);
-    cycleInterval m3(P_CYCLEINT, x, y-x, z);
+    cycleInterval m3(P_CYCLEINT, x, y - x, z);
 
     x = rnd.Rannyu(1, N_CITIES - 2);
     y = rnd.Rannyu(x, N_CITIES);
-    mirrorInterval m4(P_MIRRORINT, x, y-x);
+    mirrorInterval m4(P_MIRRORINT, x, y - x);
 
     /* Evolving population*/
     pop_circle.Evolve(rnd, SELECTION, crs, {&m1, &m2, &m3, &m4});
     pop_square.Evolve(rnd, SELECTION, crs, {&m1, &m2, &m3, &m4});
   }
+  /* Evolving with elite */
+  pop_circle.SetElite();
+  pop_square.SetElite();
+  for (size_t i = size_t(N_GEN * 0.5) + 1; i < N_GEN; ++i) {
+    cout << "Generation: " << (i + 1) << "/" << N_GEN << endl;
+    /* Output costs */
+    fout_bestcost[0] << i << "," << pop_circle.BestCost(0) << endl;
+    fout_bestcost[1] << i << "," << pop_circle.BestCost(0.5) << endl;
+    fout_bestcost[2] << i << "," << pop_square.BestCost(0) << endl;
+    fout_bestcost[3] << i << "," << pop_square.BestCost(0.5) << endl;
 
-  /* ofstream fout_circle; */
-  /* string path_circle="09/out/091-coord_circle.csv"; */
-  /* FileCheck(fout_circle, path_circle); */
-  /* fout_circle.open(path_circle); */
-  /* fout_circle<<"x,y\n"; */
-  /* for(auto x : circle){ */
-  /*   array<double,2> c = x.GetCoords(); */
-  /*   fout_circle<<c[0]<<","<<c[1]<<endl; */
-  /* } */
+    /* Building crossover */
+    fixHead crs(P_CROSSOVER, rnd.Rannyu(1, N_CITIES - 1));
 
-  /* Cities in a square */
-  /* set<City> aux; */
-  /* do { */
-  /*   aux.emplace(rnd.Rannyu(), rnd.Rannyu()); */
-  /* } while (aux.size() != N_CITIES); */
-  /* vector<City> square(aux.begin(), aux.end()); */
-  /*  */
-  /* array<ofstream, 2> fout; */
-  /* array<string, 2> path = {"09/out/091-costs_circle.csv", */
-  /*                          "09/out/091-costs_square.csv"}; */
-  /* for (int i = 0; i < 2; ++i) { */
-  /*   fout[i].open(path[i]); */
-  /*   FileCheck(fout[i], path[i]); */
-  /*   fout[i] << "best,average_best_half\n"; */
-  /* } */
+    int x, y, z;
+    /* Building mutations */
+    x = rnd.Rannyu(1, N_CITIES);
+    do {
+      y = rnd.Rannyu(1, N_CITIES);
+    } while (x == y);
+    permuteElements m1(P_PERMELM, x, y);
 
-  /* ofstream fout_circle, fout_square; */
-  /* string path_square = "09/out/091-coord_square.csv", */
-  /*        path_circle = "09/out/091-coord_circle.csv"; */
-  /* FileCheck(fout_circle, path_circle); */
-  /* FileCheck(fout_square, path_square); */
-  /* fout_circle.open(path_circle); */
-  /* fout_circle << "x,y\n"; */
-  /* fout_square.open(path_square); */
-  /* fout_square << "x,y\n"; */
-  /* for (int i=0;i<N_CITIES;++i) { */
-  /*   array<double, 2> c = tsp_circle.p */
-  /*   fout_square << c[0] << "," << c[1] << endl; */
-  /* } */
+    x = rnd.Rannyu(1, int(N_CITIES * 0.5));
+    y = rnd.Rannyu(x, N_CITIES);
+    z = rnd.Rannyu(1, min(y - x, N_CITIES - y));
+    permuteIntervals m2(P_PERMINT, x, y, z);
+
+    x = rnd.Rannyu(1, N_CITIES - 2);
+    y = rnd.Rannyu(x + 1, N_CITIES);
+    z = rnd.Rannyu(1, N_CITIES);
+    cycleInterval m3(P_CYCLEINT, x, y - x, z);
+
+    x = rnd.Rannyu(1, N_CITIES - 2);
+    y = rnd.Rannyu(x, N_CITIES);
+    mirrorInterval m4(P_MIRRORINT, x, y - x);
+
+    /* Evolving population*/
+    pop_circle.Evolve(rnd, SELECTION, crs, {&m1, &m2, &m3, &m4});
+    pop_square.Evolve(rnd, SELECTION, crs, {&m1, &m2, &m3, &m4});
+  }
+  fout_bestcost[0] << N_GEN << "," << pop_circle.BestCost(0) << endl;
+  fout_bestcost[1] << N_GEN << "," << pop_circle.BestCost(0.5) << endl;
+  fout_bestcost[2] << N_GEN << "," << pop_square.BestCost(0) << endl;
+  fout_bestcost[3] << N_GEN << "," << pop_square.BestCost(0.5) << endl;
+  for (size_t i = 0; i < 4; ++i)
+    fout_bestcost[i].close();
+
+  /* Output best path */
+  path_cities = {"out/091-bestpath_circle.csv", "out/091-bestpath_square.csv"};
+  cities = {pop_circle.GetBest().ApplyTo(&dec_circle),
+            pop_square.GetBest().ApplyTo(&dec_square)};
+
+  for (size_t i = 0; i < 2; ++i) {
+    ofstream &fout = fout_cities[i];
+    string &path = path_cities[i];
+    vector<City> &city = cities[i];
+
+    fout.open(path);
+    FileCheck(fout, path);
+    fout << "x,y\n";
+    for (auto x : city)
+      fout << x.a << "," << x.b << endl;
+
+    fout.close();
+  }
 
   return 0;
 }

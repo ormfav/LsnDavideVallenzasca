@@ -7,7 +7,7 @@
 #include <iostream>
 #include <functional>
 #include "../Point/point.h"
-#include "../Random/random.h"
+#include "../Random/include/random.h"
 
 using namespace std;
 

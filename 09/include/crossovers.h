@@ -31,9 +31,8 @@ pair<Individual, Individual> fixHead::operator()(Individual &parent1,
       }
     }
   }
-  
+
   return {son1, son2};
 }
 
 #endif
-

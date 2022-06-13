@@ -1,22 +1,25 @@
 #ifndef __Individual__
 #define __Individual__
 
-#include "../../Random/random.h"
+#include "../../Random/include/random.h"
 #include "decoder.h"
+#include <algorithm>
 #include <functional>
 #include <numeric>
 #include <vector>
-#include <algorithm>
 
 using namespace std;
 
 class Individual {
 public:
-  Individual() {};
+  Individual(){};
   Individual(size_t, Random &);
   template <typename T> Individual(Decoder<T> *, Random &);
 
   template <typename T> void EvalCost(Decoder<T> *);
+  /* Return a vector ordered according to chromosome_ */
+  template <typename T> vector<T> ApplyTo(Decoder<T> *);
+
   double GetCost() { return cost_; };
 
   bool Check(); // For debugging pourpose, can be used in assert
@@ -43,13 +46,17 @@ Individual::Individual(Decoder<T> *dec, Random &rnd)
 }
 
 template <typename T> void Individual::EvalCost(Decoder<T> *dec) {
+  cost_ = dec->costf_(ApplyTo(dec));
+};
+
+template <typename T> vector<T> Individual::ApplyTo(Decoder<T> *dec) {
   vector<T> ordered_dict;
   ordered_dict.reserve(dec->dict_.size());
 
-  auto fill = [&](size_t i){ordered_dict.push_back(dec->dict_[i]);};
-  for_each(chromosome_.begin(),chromosome_.end(),fill);
-  
-  cost_ = dec->costf_(ordered_dict);
+  auto fill = [&](size_t i) { ordered_dict.push_back(dec->dict_[i]); };
+  for_each(chromosome_.begin(), chromosome_.end(), fill);
+
+  return ordered_dict;
 };
 
 /*****************************/
@@ -68,7 +75,8 @@ struct Mutation {
 
 struct Crossover {
   Crossover(double p) : p_(p){};
-  virtual pair<Individual, Individual> operator()(Individual &, Individual &) = 0;
+  virtual pair<Individual, Individual> operator()(Individual &,
+                                                  Individual &) = 0;
   double p_;
 };
 

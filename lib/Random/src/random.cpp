@@ -12,7 +12,7 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 #include <fstream>
 #include <cmath>
 #include <cstdlib>
-#include "random.h"
+#include "../include/random.h"
 
 using namespace std;
 
@@ -24,7 +24,10 @@ Random :: Random(const char *PRIMES, const char *SEEDIN){
     ifstream Primes(PRIMES);
     if (Primes.is_open()){
         Primes >> p1 >> p2 ;
-    } else cerr << "PROBLEM: Unable to open Primes" << endl;
+    } else {
+      cerr << "PROBLEM: Unable to open Primes" << endl;
+      exit(-1);
+    }
     Primes.close();
 
     ifstream input(SEEDIN);
@@ -38,7 +41,10 @@ Random :: Random(const char *PRIMES, const char *SEEDIN){
             }
         }
         input.close();
-    } else cerr << "PROBLEM: Unable to open seed.in" << endl;
+    } else {
+      cerr << "PROBLEM: Unable to open seed.in" << endl;
+      exit(-1);
+    }
 
 }
 

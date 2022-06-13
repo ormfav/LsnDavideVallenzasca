@@ -9,7 +9,7 @@ struct City {
   City(double, double);
   bool operator<(const City &c) const { return a < c.a; };
   double operator-(const City &c) {
-    return (a - c.a) * (a - c.a) - (b - c.b) * (b - c.b);
+    return (a - c.a) * (a - c.a) + (b - c.b) * (b - c.b);
   };
 
   double a, b;

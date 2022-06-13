@@ -14,18 +14,20 @@ GENALG := $(LIB)Ga/
 
 
 TARGET := 091 
- $(BIN)091.x: $(OBJ)091.o $(RANDOM)$(OBJ)random.o $(GENALG)$(OBJ)individual.o | $(BIN)
+$(BIN)091.x: $(OBJ)091.o $(RANDOM)$(OBJ)random.o $(GENALG)$(OBJ)individual.o | $(BIN)
 	@echo "Linking $^"
 	$(CXX) $(CXXFLAGS) $^ -o $@
   # $(wildcard $(INC)*.h)
-obj/091.o: src/091.cpp include/city.h include/crossovers.h include/mutations.h ../lib/Random/random.h | obj/ 
+obj/091.o: src/091.cpp include/city.h include/crossovers.h include/mutations.h $(RANDOM)$(INC)random.h | obj/ 
 	@echo "Compiling $@"
 	$(CXX) $(CXXFLAGS) -c src/091.cpp -o $@
 
-$(GENALG)obj/individual.o: 
+$(GENALG)$(OBJ)individual.o: 
 	$(MAKE) -C $(GENALG)
 
-#TODO RANDOM.o
+$(RANDOM)$(OBJ)random.o: 
+	$(MAKE) -C $(RANDOM)
+
 
 $(BIN):
 	@echo "Creating $@"

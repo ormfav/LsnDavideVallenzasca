@@ -7,8 +7,9 @@ OBJ = obj/
 SRC = src/
 INC = include/
 
-TARGET = individual
-$(OBJ)$(TARGET).o: $(SRC)$(TARGET).cpp $(INC)$(TARGET).h $(INC)decoder.h ../Random/include/random.h | $(OBJ)  
+TARGET = random
+
+$(OBJ)$(TARGET).o: $(SRC)$(TARGET).cpp $(INC)$(TARGET).h | $(OBJ)  
 	@echo "Compiling $@"
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 

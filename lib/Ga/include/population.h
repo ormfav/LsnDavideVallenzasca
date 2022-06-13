@@ -1,7 +1,7 @@
 #ifndef __Generation__
 #define __Generation__
 
-#include "../../Random/random.h"
+#include "../../Random/include/random.h"
 #include "individual.h"
 #include <algorithm>
 #include <cmath>
@@ -17,8 +17,9 @@ public:
 
   size_t Select(Random &, double selection);
 
-  void Evolve(Random &, double selection, Crossover&, vector<Mutation*>);
+  void Evolve(Random &, double selection, Crossover &, vector<Mutation *>);
   double BestCost(double);
+  Individual GetBest() { return population_.front(); };
 
 private:
   vector<Individual> population_;
@@ -45,8 +46,8 @@ size_t Population<T>::Select(Random &rnd, double selection) {
 /* Funziona solo per popolazioni pari! */
 #include <iostream>
 template <typename T>
-void Population<T>::Evolve(Random &rnd, double selection, Crossover& crs,
-                           vector<Mutation*> mut) {
+void Population<T>::Evolve(Random &rnd, double selection, Crossover &crs,
+                           vector<Mutation *> mut) {
   vector<Individual> offspring(population_.size());
 
   for (size_t i = 0; i < offspring.size(); i += 2) {
@@ -57,7 +58,7 @@ void Population<T>::Evolve(Random &rnd, double selection, Crossover& crs,
     do {
       ip2 = Select(rnd, selection);
     } while (ip2 == ip1);
-    
+
     if (rnd.Rannyu() < crs.p_)
       tie(offspring[i], offspring[i + 1]) =
           crs(population_[ip1], population_[ip2]);
@@ -86,7 +87,7 @@ template <typename T> double Population<T>::BestCost(double frac) {
   size_t imax = population_.size() * frac;
   ++imax;
   double ave = 0;
-  for (int i = 0; i < imax; ++i)
+  for (size_t i = 0; i < imax; ++i)
     ave += population_[i].GetCost();
   return ave / imax;
 };
