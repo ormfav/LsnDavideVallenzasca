@@ -17,9 +17,10 @@ public:
 
   size_t Select(Random &, double selection);
 
+  void Sort() { sort(population_.begin(), population_.end()); };
   void Evolve(Random &, double selection, Crossover &, vector<Mutation *>);
   double BestCost(double);
-  Individual GetBest() { return population_.front(); };
+  Individual& GetBest() { return population_.front(); };
 
 private:
   vector<Individual> population_;
@@ -34,6 +35,7 @@ Population<T>::Population(size_t n_individuals, Decoder<T> &dec, Random &rnd)
   population_.reserve(n_individuals);
   for (size_t i = 0; i < n_individuals; ++i)
     population_.emplace_back(dec_, rnd);
+  Sort();
 }
 
 template <typename T>
@@ -44,7 +46,6 @@ size_t Population<T>::Select(Random &rnd, double selection) {
     return population_.size() * pow(rnd.Rannyu(), selection);
 }
 /* Funziona solo per popolazioni pari! */
-#include <iostream>
 template <typename T>
 void Population<T>::Evolve(Random &rnd, double selection, Crossover &crs,
                            vector<Mutation *> mut) {
@@ -52,7 +53,6 @@ void Population<T>::Evolve(Random &rnd, double selection, Crossover &crs,
 
   for (size_t i = 0; i < offspring.size(); i += 2) {
     /* Crossover */
-    /* DA CORREGGERE */
     size_t ip1 = Select(rnd, selection);
     size_t ip2;
     do {
@@ -80,7 +80,9 @@ void Population<T>::Evolve(Random &rnd, double selection, Crossover &crs,
   }
 
   population_ = offspring;
-  sort(population_.begin(), population_.end());
+  /* sort(population_.begin(), population_.end()); */
+  Sort();
+
 }
 
 template <typename T> double Population<T>::BestCost(double frac) {

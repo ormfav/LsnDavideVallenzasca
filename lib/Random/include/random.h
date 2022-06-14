@@ -22,7 +22,7 @@ protected:
 public:
     // constructors
     Random();
-    Random(const char * primes, const char * seed);
+    Random(const char * primes, const char * seed, int primesline = 1);
     // destructor
     ~Random();
     // methods

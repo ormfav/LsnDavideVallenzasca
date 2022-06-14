@@ -18,12 +18,13 @@ using namespace std;
 
 Random :: Random(){}
 
-Random :: Random(const char *PRIMES, const char *SEEDIN){
+Random :: Random(const char *PRIMES, const char *SEEDIN, int primesline){
     int seed[4];
     int p1, p2;
     ifstream Primes(PRIMES);
     if (Primes.is_open()){
-        Primes >> p1 >> p2 ;
+        for(int i=0;i<primesline;++i)
+          Primes >> p1 >> p2 ;
     } else {
       cerr << "PROBLEM: Unable to open Primes" << endl;
       exit(-1);

@@ -1,24 +1,25 @@
 CXX = g++
 CXXFLAGS = -Wall -O3 --std=c++11
 
-.PHONY: clean
+.PHONY: all clean
 
 BIN := bin/
 OBJ := obj/
 SRC := src/
 INC := include/
+CFG := in/
 LIB := ../lib/
 
 RANDOM := $(LIB)Random/
 GENALG := $(LIB)Ga/
+MISCFC := $(LIB)Misc/
 
+all: $(BIN)091.x
 
-TARGET := 091 
-$(BIN)091.x: $(OBJ)091.o $(RANDOM)$(OBJ)random.o $(GENALG)$(OBJ)individual.o | $(BIN)
+$(BIN)091.x: $(OBJ)091.o $(RANDOM)$(OBJ)random.o $(GENALG)$(OBJ)individual.o $(MISCFC)$(OBJ)misc.o | $(BIN)
 	@echo "Linking $^"
 	$(CXX) $(CXXFLAGS) $^ -o $@
-  # $(wildcard $(INC)*.h)
-obj/091.o: src/091.cpp include/city.h include/crossovers.h include/mutations.h $(RANDOM)$(INC)random.h | obj/ 
+$(OBJ)091.o: $(SRC)091.cpp $(wildcard $(INC)*.h) $(wildcard $(CFG)091*) $(RANDOM)$(INC)random.h $(wildcard $(GENALG)$(INC)*.h) | $(OBJ) 
 	@echo "Compiling $@"
 	$(CXX) $(CXXFLAGS) -c src/091.cpp -o $@
 
@@ -28,6 +29,8 @@ $(GENALG)$(OBJ)individual.o:
 $(RANDOM)$(OBJ)random.o: 
 	$(MAKE) -C $(RANDOM)
 
+$(MISCFC)$(OBJ)misc.o: 
+	$(MAKE) -C $(MISCFC)
 
 $(BIN):
 	@echo "Creating $@"

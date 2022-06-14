@@ -6,26 +6,18 @@
 
 #include "../include/city.h"
 
-#include "../../lib/Misc/misc.h"
+#include "../../lib/Misc/include/misc.h"
 #include "../../lib/Random/include/random.h"
 
+#include <array>
 #include <algorithm>
 #include <iostream>
 #include <set>
 
 using namespace std;
 
-/* #include "../in/091-conf.inl" */
-#define N_CITIES 34
-#define N_GEN 1000
-#define INDIVIDUALS 10000
-
-#define SELECTION 3
-#define P_CROSSOVER 0.6
-#define P_PERMELM 0.1
-#define P_PERMINT 0.1
-#define P_CYCLEINT 0.1
-#define P_MIRRORINT 0.1
+#include "../in/091-conf_simulation.inl"
+#include "../in/091-conf_ga.inl"
 
 int main(int argc, char *argv[]) {
   Random rnd("in/Primes", "in/seed.in");
@@ -85,8 +77,9 @@ int main(int argc, char *argv[]) {
     fout_bestcost[i] << "gen,cost\n";
   }
 
-  /* Evolving without elite */
-  for (size_t i = 0; i < size_t(N_GEN * 0.5); ++i) {
+  /* We are performing two separate loops: using lambda to avoid
+   * writing the same code twice */
+  auto evolving = [&](size_t i) {
     cout << "Generation: " << (i + 1) << "/" << N_GEN << endl;
     /* Output costs */
     fout_bestcost[0] << i << "," << pop_circle.BestCost(0) << endl;
@@ -122,47 +115,17 @@ int main(int argc, char *argv[]) {
     /* Evolving population*/
     pop_circle.Evolve(rnd, SELECTION, crs, {&m1, &m2, &m3, &m4});
     pop_square.Evolve(rnd, SELECTION, crs, {&m1, &m2, &m3, &m4});
-  }
+  };
+
+  /* Evolving without elite */
+  for (size_t i = 0; i < size_t(N_GEN * 2 / 3); ++i)
+    evolving(i);
   /* Evolving with elite */
   pop_circle.SetElite();
   pop_square.SetElite();
-  for (size_t i = size_t(N_GEN * 0.5) + 1; i < N_GEN; ++i) {
-    cout << "Generation: " << (i + 1) << "/" << N_GEN << endl;
-    /* Output costs */
-    fout_bestcost[0] << i << "," << pop_circle.BestCost(0) << endl;
-    fout_bestcost[1] << i << "," << pop_circle.BestCost(0.5) << endl;
-    fout_bestcost[2] << i << "," << pop_square.BestCost(0) << endl;
-    fout_bestcost[3] << i << "," << pop_square.BestCost(0.5) << endl;
+  for (size_t i = size_t(N_GEN * 2 / 3) + 1; i < N_GEN; ++i)
+    evolving(i);
 
-    /* Building crossover */
-    fixHead crs(P_CROSSOVER, rnd.Rannyu(1, N_CITIES - 1));
-
-    int x, y, z;
-    /* Building mutations */
-    x = rnd.Rannyu(1, N_CITIES);
-    do {
-      y = rnd.Rannyu(1, N_CITIES);
-    } while (x == y);
-    permuteElements m1(P_PERMELM, x, y);
-
-    x = rnd.Rannyu(1, int(N_CITIES * 0.5));
-    y = rnd.Rannyu(x, N_CITIES);
-    z = rnd.Rannyu(1, min(y - x, N_CITIES - y));
-    permuteIntervals m2(P_PERMINT, x, y, z);
-
-    x = rnd.Rannyu(1, N_CITIES - 2);
-    y = rnd.Rannyu(x + 1, N_CITIES);
-    z = rnd.Rannyu(1, N_CITIES);
-    cycleInterval m3(P_CYCLEINT, x, y - x, z);
-
-    x = rnd.Rannyu(1, N_CITIES - 2);
-    y = rnd.Rannyu(x, N_CITIES);
-    mirrorInterval m4(P_MIRRORINT, x, y - x);
-
-    /* Evolving population*/
-    pop_circle.Evolve(rnd, SELECTION, crs, {&m1, &m2, &m3, &m4});
-    pop_square.Evolve(rnd, SELECTION, crs, {&m1, &m2, &m3, &m4});
-  }
   fout_bestcost[0] << N_GEN << "," << pop_circle.BestCost(0) << endl;
   fout_bestcost[1] << N_GEN << "," << pop_circle.BestCost(0.5) << endl;
   fout_bestcost[2] << N_GEN << "," << pop_square.BestCost(0) << endl;

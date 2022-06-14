@@ -20,7 +20,7 @@ public:
   /* Return a vector ordered according to chromosome_ */
   template <typename T> vector<T> ApplyTo(Decoder<T> *);
 
-  double GetCost() { return cost_; };
+  double& GetCost() { return cost_; };
 
   bool Check(); // For debugging pourpose, can be used in assert
 

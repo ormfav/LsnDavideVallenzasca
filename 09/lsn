@@ -1,0 +1,66 @@
+#!/bin/bash
+#sha funziona per mac?
+
+#TODO: aggiungo cat config, apertura jupyter, default behaviour
+#aggiungo help function, aggiungo controllo su esrercizio in input
+#elif -> if e ordino in modo da fare make exec clean
+#fix: ordine conta: prima opt poi file
+
+
+COMPILE = False
+MAKE = False
+CLEAN = False
+
+set -e
+
+while getopts 'cmX' OPT; do
+    case "$OPT" in
+        c) COMPILE = True
+        ;;
+        m) MAKE = True
+        ;;
+        X) CLEAN = True
+        ;;
+        *) echo "Possible options:"
+           echo "none -> exec" 
+           echo "-c -> compile and exec" 
+           echo "-m make" 
+           echo "-X remove output files"
+           exit 0
+        ;;
+    esac
+done
+    
+shift "$(($OPTIND -1))"
+
+ARG=$1
+
+if [ "$COMPILE" = True ]; then
+    echo "making $ARG . . ."
+    echo " "
+    echo "output:"
+    echo " "
+    make $ARG
+    echo " "
+    echo "=============="
+    echo " "
+fi
+
+echo "executing ${ARG:0:2}/bin/$ARG.x . . ."
+echo " "
+echo "output:"
+echo " "
+${ARG:0:2}/bin/$ARG.x
+
+# if [ "$RESULTS" = True ]; then
+#     echo "Launching jupyter notebook . . ."
+#     jupyter-notebook $ARG/$ARG.ipynb &>/dev/null &
+#     JUPID=$!
+# fi
+# if [ "$KILL" = True ]; then 
+#     kill $JUPID
+# fi
+
+
+
+
