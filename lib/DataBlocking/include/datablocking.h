@@ -40,6 +40,7 @@ public:
   array<double, PROPS> GetPrgErr();
 
   size_t CompletedBlocks() { return nblk_; }
+  void Restart();
 
 private:
   const size_t STEPS_; // steps per block
@@ -168,4 +169,11 @@ array<double, PROPS> dataBlocks<PARAMS, PROPS>::GetPrgErr() {
   return prg_err_;
 }
 
+template <size_t PARAMS, size_t PROPS>
+void dataBlocks<PARAMS, PROPS>::Restart() {
+  nblk_ = 0;
+  prg_ave_ = {0};
+  prg_av2_ = {0};
+  prg_err_ = {0};
+}
 #endif

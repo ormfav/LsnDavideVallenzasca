@@ -1,0 +1,5 @@
+alias run-031='bin/031.x'
+
+alias mkrun-031='make 031 && echo "Make done. Exec." && bin/031.x'
+
+alias clean-output='rm out/*'

@@ -17,7 +17,7 @@ using pt1D = point<double, 1>;
 bool Throw(pt1D &p, Random &rnd) {
   double x;
   double y;
-  double needle_mid = rnd.Rannyu() * GRID_SPACE * 0.5;
+  double needle_mid = rnd.Rannyu() * GRID_SPACE;
   do {
     x = rnd.Rannyu();
     y = rnd.Rannyu();
@@ -25,7 +25,7 @@ bool Throw(pt1D &p, Random &rnd) {
   // projeting the needle onto vertical line
   p[0] = NEEDLE_LENGHT * x / hypot(x, y);
 
-  p[0] = needle_mid - 0.5 * p[0];
+  p[0] = needle_mid - p[0];
 
   return 1;
 }
@@ -38,8 +38,7 @@ int main(int argc, char *argv[]) {
   array<function<double(pt1D)>, 1> db_eval = {[](pt1D p) {
     if (p[0] <= 0)
       return 1;
-    else
-      return 0;
+    return 0;
   }};
 
   dataBlocks<1, 1> pi(STEPS_PER_BLOCK, bind(Throw, placeholders::_1, rnd),

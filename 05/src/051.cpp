@@ -1,8 +1,8 @@
-#include "../../lib/DataBlocking/datablocking.h"
-#include "../../lib/Metropolis/metropolis.h"
-#include "../../lib/Misc/misc.h"
-#include "../../lib/Point/point.h"
-#include "../../lib/Random/random.h"
+#include "../../lib/DataBlocking/include/datablocking.h"
+#include "../../lib/Metropolis/include/metropolis.h"
+#include "../../lib/Misc/include/misc.h"
+#include "../../lib/Point/include/point.h"
+#include "../../lib/Random/include/random.h"
 #include <cmath>
 #include <cstdio>
 #include <fstream>
@@ -33,10 +33,13 @@ int main(int argc, char *argv[]) {
   array<double, 3> p0_100_gauss = {0, 0, 0};
   array<double, 3> p0_210_gauss = {0, 0, 2};
 
+  Mrt2<3> metro(DELTA_100);
+  auto g = bind(Mrt2<3>(), placeholders::_1, psi2_100,rnd);
+
   array<dataBlocks<3, 1>, 4> r = {
       dataBlocks<3, 1>(
           STEPS_PER_BLOCK, p0_100_unif,
-          bind(Mrt2Unif<3>, placeholders::_1, psi2_100, rnd, DELTA_100), f),
+          bind(metro(), placeholders::_1, psi2_100, rnd), f),
       dataBlocks<3, 1>(
           STEPS_PER_BLOCK, p0_210_unif,
           bind(Mrt2Unif<3>, placeholders::_1, psi2_210, rnd, DELTA_210), f),

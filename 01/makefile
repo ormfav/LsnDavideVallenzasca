@@ -1,7 +1,6 @@
+#Aliases
 CXX = g++
 CXXFLAGS = -Wall -O3 --std=c++11
-
-.PHONY: all clean
 
 BIN := bin/
 OBJ := obj/
@@ -14,8 +13,20 @@ RANDOM := $(LIB)Random/
 MISCFC := $(LIB)Misc/
 DATBLK := $(LIB)DataBlocking/
 
+#User interface
+.PHONY: all clean 011 012 013
+
 all: $(BIN)011.x $(BIN)012.x $(BIN)013.x
 
+clean:
+	@rm -rf $(OBJ) $(BIN)
+	@echo "All clean"
+
+011: $(BIN)011.x
+012: $(BIN)012.x
+013: $(BIN)013.x
+
+#Rules
 $(BIN)011.x: $(OBJ)011.o $(RANDOM)$(OBJ)random.o $(MISCFC)$(OBJ)misc.o | $(BIN)
 	@echo "Linking $^"
 	$(CXX) $(CXXFLAGS) $^ -o $@
@@ -51,6 +62,4 @@ $(OBJ):
 	@echo "Creating $@"
 	@mkdir -p $@
 
-clean:
-	@rm -rf $(OBJ) $(BIN)
-	@echo "All clean"
+
