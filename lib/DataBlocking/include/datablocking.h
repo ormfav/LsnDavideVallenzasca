@@ -26,7 +26,7 @@ public:
   double Measure();
   /* Measure and print parameters every k steps (from the beginning of
    * the datablocking procedure) */
-  double Measure(size_t k, size_t nblk, ofstream &);
+  double Measure(size_t k, ofstream &);
 
   /* Transform a property evaluated in a block */
   void Map(size_t prop, function<double(double)> map_val);
@@ -89,14 +89,13 @@ double dataBlocks<PARAMS, PROPS>::Measure() {
 }
 
 template <size_t PARAMS, size_t PROPS>
-double dataBlocks<PARAMS, PROPS>::Measure(size_t k, size_t nblk,
-                                          ofstream &fout) {
+double dataBlocks<PARAMS, PROPS>::Measure(size_t k, ofstream &fout) {
   for (double &x : blk_ave_)
     x = 0;
 
   for (size_t i = 0; i < STEPS_; ++i) {
     params_.Move();
-    if ((nblk * STEPS_ + i) % k == 0) {
+    if ((nblk_ * STEPS_ + i) % k == 0) {
       string to_print = "";
       for (double x : params_.ToArray()) {
         to_print.append(to_string(x));

@@ -2,7 +2,9 @@
 #define __Metropolis__
 
 #include "../../Point/include/point.h"
-#include "../../Random/include/random.h"
+#include "trialstep.h"
+#include <cmath>
+#include <fstream>
 #include <functional>
 #include <iostream>
 
@@ -10,49 +12,157 @@ using namespace std;
 
 template <size_t DIM, char STEP_TYPE = 'u'> class mrt2 {
 public:
-  mrt2(double delta) : delta_(delta){};
-  bool operator()(point<double, DIM> &p, Random &rnd);
-  void Equilibrate(array<double, DIM> &p, size_t steps_); //TODO
+  mrt2(double delta,
+       function<double(point<double, DIM> &, point<double, DIM> &)> pdf_ratio,
+       Random &);
+
+  bool operator()(point<double, DIM> &p);
+
+  double Equilibrate(array<double, DIM> &p, size_t steps);
+  double Equilibrate(array<double, DIM> &p, size_t steps,
+                     function<double(point<double, DIM>)>, ofstream &);
+  double Equilibrate(array<double, DIM> &p, size_t steps, ofstream &);
   bool IsTuned(double tollerance) { return tollerance_ <= tollerance; };
+  void AutoTune(array<double, DIM> &p, double tollerance, size_t steps);
 
 private:
   double delta_;
+  function<double(point<double, DIM> &, point<double, DIM> &)> pdf_ratio_;
   double tollerance_;
-  function<double(point<double, DIM>&, point<double, DIM>&)> pdf_ratio_;
+
+  Random *rnd_;
 };
 
-template <char STEP_TYPE> double TrialStep(Random &rnd, double delta) {
-  cout << "ERROR: unrecognized step type. Available options:\n";
-  cout << "\'u\' = uniform step\n";
-  cout << "\'g\' = gaussian step\n";
-  exit(1);
-}
-template <> double TrialStep<'u'>(Random &rnd, double delta) {
-  return rnd.Rannyu(-delta, delta);
-}
-template <> double TrialStep<'g'>(Random &rnd, double delta) {
-  return rnd.Gauss(0, delta);
-}
+template <size_t DIM, char STEP_TYPE>
+mrt2<DIM, STEP_TYPE>::mrt2(
+    double delta,
+    function<double(point<double, DIM> &, point<double, DIM> &)> pdf_ratio,
+    Random &rnd)
+    : delta_(delta), pdf_ratio_(pdf_ratio), tollerance_(0), rnd_(&rnd) {}
 
 template <size_t DIM, char STEP_TYPE>
-bool mrt2<DIM, STEP_TYPE>::operator()(point<double, DIM> &p, Random &rnd) {
-  auto m = [&rnd, delta = this->delta_](point<double, DIM> &p) {
+bool mrt2<DIM, STEP_TYPE>::operator()(point<double, DIM> &p) {
+  auto m = [this](point<double, DIM> &p) {
     for (double &x : p.ToArray())
-      x += TrialStep<STEP_TYPE>(rnd, delta);
+      x += TrialStep<STEP_TYPE>(*(this->rnd_), this->delta_);
     return 1;
   };
-  point<double, DIM> q(p.ToArray(), m);
+  point<double, DIM> q(m, p.ToArray());
   q.Move();
   double test = pdf_ratio_(q, p);
   if (test >= 1.) {
     p.ToArray() = q.ToArray();
     return 1;
-  } else if (rnd.Rannyu() < test) {
+  } else if (rnd_->Rannyu() < test) {
     p.ToArray() = q.ToArray();
     return 1;
   }
 
   return 0;
+}
+
+template <size_t DIM, char STEP_TYPE>
+double mrt2<DIM, STEP_TYPE>::Equilibrate(array<double, DIM> &p, size_t steps) {
+  point<double, DIM> q(*this, p);
+
+  for (size_t i = 0; i < steps; ++i)
+    q.Move();
+
+  p = q.ToArray();
+  return q.Rate();
+}
+
+template <size_t DIM, char STEP_TYPE>
+double mrt2<DIM, STEP_TYPE>::Equilibrate(array<double, DIM> &p, size_t steps,
+                                         function<double(point<double, DIM>)> f,
+                                         ofstream &fout) {
+  point<double, DIM> q(*this, p);
+
+  for (size_t i = 0; i < steps; ++i) {
+    fout << i << "," << f(q) << endl;
+    q.Move();
+  }
+
+  p = q.ToArray();
+  return q.Rate();
+}
+
+template <size_t DIM, char STEP_TYPE>
+double mrt2<DIM, STEP_TYPE>::Equilibrate(array<double, DIM> &p, size_t steps,
+                                         ofstream &fout) {
+  point<double, DIM> q(*this, p);
+
+  for (size_t i = 0; i < steps; ++i) {
+    string to_print = "";
+    q.Move();
+    for (double x : q.ToArray()) {
+      to_print.append(to_string(x));
+      to_print.push_back(',');
+    }
+    to_print.pop_back();
+    fout << to_print << endl;
+  }
+
+  p = q.ToArray();
+  return q.Rate();
+}
+
+template <size_t DIM, char STEP_TYPE>
+void mrt2<DIM, STEP_TYPE>::AutoTune(array<double, DIM> &p, double tollerance,
+                                    size_t steps) {
+
+  point<double, DIM> r(*this, p);
+  double dmin = 0.;
+  double dmax = 0.;
+  double tollmin = 0.5 - tollerance;
+  double tollmax = 0.5 + tollerance;
+  double acc;
+  auto display_info = [&]() {
+    cout << "Interval of tollerance: [" << tollmin << "," << tollmax << "]\n";
+    cout << "Current acceptance rate: " << acc << endl;
+    cout << "----------\n";
+  };
+
+  /* First part: finding an interval */
+  do {
+    point<double, DIM> q(*this, p);
+    cout << dmin << " " << delta_ << " " << dmax << endl;
+    for (size_t i = 0; i < steps; ++i)
+      q.Move();
+    acc = q.Rate();
+    display_info();
+    if (acc < tollmin) {
+      dmax = delta_;
+      delta_ *= 0.8;
+    } else if (acc > tollmax) {
+      dmin = delta_;
+      delta_ *= 1.2;
+    } else {
+      tollerance_ = fabs(0.5 - acc);
+      p = q.ToArray();
+      return;
+    }
+    r = q;
+  } while (dmin * dmax == 0);
+
+  /* Second part: bisection method */
+  do {
+    point<double, DIM> q(*this, p);
+    delta_ = 0.5 * (dmax + dmin);
+    cout << dmin << " " << delta_ << " " << dmax << endl;
+    for (size_t i = 0; i < steps; ++i)
+      q.Move();
+    acc = q.Rate();
+    tollerance_ = fabs(acc - 0.5);
+    display_info();
+    if (acc < 0.5)
+      dmax = delta_;
+    else
+      dmin = delta_;
+    r = q;
+  } while (!IsTuned(tollerance));
+
+  p = r.ToArray();
 }
 
 #endif

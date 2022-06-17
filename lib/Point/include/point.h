@@ -34,8 +34,6 @@ private:
   function<bool(point<T, N> &)> move_;
   int attempted_, accepted_;
 };
-// LA USO?!
-template <typename T, size_t N> point<T, N> ToPoint(T x1, ...);
 
 template <typename T, size_t N>
 point<T, N>::point(function<bool(point<T, N> &)> move, array<T, N> x0) {
@@ -48,8 +46,8 @@ point<T, N>::point(function<bool(point<T, N> &)> move, array<T, N> x0) {
 template <typename T, size_t N> point<T, N>::~point() {}
 
 template <typename T, size_t N> void point<T, N>::Reset() {
-  for (T &x : p_)
-    x = 0;
+  accepted_ = 0;
+  attempted_ = 0;
 }
 
 template <typename T, size_t N> void point<T, N>::Jump(array<T, N> p) {
@@ -73,21 +71,6 @@ template <typename T, size_t N> double point<T, N>::Lenght() {
 
 template <typename T, size_t N> double point<T, N>::Rate() {
   return (double)accepted_ / (double)attempted_;
-}
-
-// DA TESTARE
-template <typename T, size_t N>
-point<T, N> ToPoint(function<bool(point<T, N> &)> m, ...) {
-  array<T, N> elems;
-  va_list arg_list;
-  va_start(arg_list, m);
-  for (T &x : elems)
-    x = va_arg(arg_list, T);
-  va_end(arg_list);
-
-  point<T, N> p(elems, m);
-
-  return p;
 }
 
 #endif
