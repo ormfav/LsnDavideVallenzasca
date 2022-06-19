@@ -1,0 +1,7 @@
+alias run-081='bin/081.x'
+alias run-082='bin/082.x'
+
+alias mkrun-081='make 081 && echo "Make done. Exec." && bin/081.x'
+alias mkrun-082='make 082 && echo "Make done. Exec." && bin/082.x'
+
+alias clean-output='rm out/*'

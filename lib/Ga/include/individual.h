@@ -10,6 +10,15 @@
 
 using namespace std;
 
+/* This class is an implementation of the concept of chromosome. It
+ * stores the chromosome itself and its cost and provide a bunch of
+ * methods to ease te work with individual and comparison operators
+ * between individual (that is: comparing the costs).
+ * We provided also a general scheme for unary and binary
+ * individual operators (mutations and crossover). Problem-specific
+ * operators must be implemented as child classes of these
+ * general schemes*/
+
 class Individual {
 public:
   Individual(){};
@@ -20,7 +29,7 @@ public:
   /* Return a vector ordered according to chromosome_ */
   template <typename T> vector<T> ApplyTo(Decoder<T> *);
 
-  double& GetCost() { return cost_; };
+  double &GetCost() { return cost_; };
 
   bool Check(); // For debugging pourpose, can be used in assert
 

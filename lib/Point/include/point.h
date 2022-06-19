@@ -34,6 +34,8 @@ private:
   function<bool(point<T, N> &)> move_;
   int attempted_, accepted_;
 };
+/* Identity function for fast declaration of point as an array wrapper */
+template <typename T, size_t N> bool Id(point<T, N> &) { return 1; };
 
 template <typename T, size_t N>
 point<T, N>::point(function<bool(point<T, N> &)> move, array<T, N> x0) {

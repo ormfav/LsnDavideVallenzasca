@@ -11,9 +11,9 @@ using namespace std;
 /* individual to the concrete problem-dependent representation. */
 /* Individual contains a vector of int {i1,i2...ik...} and a cost */
 /* associated to this vector. ik "refers" */
-/* to the element stored in dict_[in], costf_ provide the law to evaluate */
+/* to the element stored in dict_[ik], costf_ is the law to evaluate */
 /* the cost of the individual provided the order specified in the vector  */
-/* of int */
+/* of the individual*/
 
 template <typename T> struct Decoder {
   Decoder(){}

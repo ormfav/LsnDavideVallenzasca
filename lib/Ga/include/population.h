@@ -8,6 +8,16 @@
 #include <cstddef>
 #include <tuple>
 
+/* A class that implements the concept of population. It stores a
+ * vector of individuals (the actual population) and a decoder that
+ * "explains" the relationship of each individual with the concrete
+ * problem. The core of the class are Select, the selection
+ * operator, and Evolve. Select chose the individuals for
+ * reproduction preferring those with small costs (eventually
+ * leaving out the best individual, according to elite_). Evolve
+ * produce an entirely new vector of individuals using the
+ * crossover and mutations given as input.*/
+
 template <typename T> class Population {
 public:
   Population(size_t, Decoder<T> &, Random &);
@@ -80,7 +90,6 @@ void Population<T>::Evolve(Random &rnd, double selection, Crossover &crs,
   }
 
   population_ = offspring;
-  /* sort(population_.begin(), population_.end()); */
   Sort();
 
 }

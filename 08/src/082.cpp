@@ -1,116 +1,92 @@
-#include "../../lib/DataBlocking/datablocking.h"
-#include "../../lib/Metropolis/metropolis.h"
-#include "../../lib/Misc/misc.h"
-#include "../../lib/Point/point.h"
-#include "../../lib/Random/random.h"
+#include "../../lib/DataBlocking/include/datablocking.h"
+#include "../../lib/Metropolis/include/metropolis.h"
+#include "../../lib/Misc/include/misc.h"
+#include "../../lib/Point/include/point.h"
+#include "../../lib/Random/include/random.h"
 #include <cmath>
 #include <fstream>
 #include <functional>
 #include <iostream>
 
 using namespace std;
+using pt2D = point<double, 2>;
 
-/* #include "../config/081-conf.inl" */
-#define DELTA 2
-
-#define N_BLOCKS 100
-#define STEPS_PER_BLOCK 100000
-
-double Integrand(point<double, 1> p, point<double, 2> &params) {
-  double mu = params[0], sigma2 = params[1];
-  double x = p[0];
-  double x2 = x * x;
-
-  double kin = mu * mu + x2 - 2 * mu * x * tanh(mu * x / sigma2) - sigma2;
-  double pot = x2 * x2 - 2.5 * x2;
-
-  return pot - 0.5 * kin / (sigma2 * sigma2);
-}
-
-double Psi2_gs(point<double, 1> p, point<double, 2> &params) {
-  double mu = params[0], sigma2 = params[1];
-  double psi = exp(-0.5 * (p[0] - mu) * (p[0] - mu) / sigma2) +
-               exp(-0.5 * (p[0] + mu) * (p[0] + mu) / sigma2);
-  return psi * psi;
-};
-
-double BoltzmanRatio(point<double, 2> new_params, double &old_H, double beta,
-                     Random &rnd) {
-  /* Initializing data blocking */
-  function<double(point<double, 1>)> pdf =
-      bind(Psi2_gs, placeholders::_1, new_params);
-  auto m = bind(Mrt2Unif<1>, placeholders::_1, pdf, rnd, DELTA);
-  auto f = bind(Integrand, placeholders::_1, new_params);
-  dataBlocks<1, 1> new_H(STEPS_PER_BLOCK, {0}, m, {f});
-
-  /* Data blocking */
-  for (size_t db = 0; db < 20; db++) {
-    new_H.Measure();
-    new_H.EvalBlock();
-  }
-  double dH = old_H - new_H.GetPrgAve()[0];
-  old_H = new_H.GetPrgAve()[0];
-  return exp(beta * dH);
-}
+#include "../include/082.h"
 
 int main(int argc, char *argv[]) {
   /* Initializing random number generator */
-  Random rnd("lib/Random/Primes", "lib/Random/seed.in");
+  Random rnd("in/Primes", "in/seed.in");
 
-  /* Stuff for SA */
-  /* Variables */
-  double beta = 1;
-  double old_H, trial_H;
-
-  /* Functions */
-  auto UpdateBeta = [&beta](double a) { beta += a; };
-  auto MoveParams = [&](point<double, 2> &params) {
-    auto MetroTest = bind(BoltzmanRatio, placeholders::_1, trial_H, beta, rnd);
-    if (Mrt2UnifOpt<2>(params, MetroTest, rnd, DELTA)) {
-      old_H = trial_H;
+  /* SA */
+  array<double, 2> starting_params = {1., 1.};
+  boltzmanRatio boltzmanratio(1, rnd, starting_params);
+  auto pdf_ratio = [&boltzmanratio](pt2D &q, pt2D &p) {
+    return boltzmanratio(q);
+  };
+  mrt2<2> metro(1, pdf_ratio, rnd);
+  auto move = [&metro, &boltzmanratio](pt2D &p) {
+    if (metro(p)) {
+      boltzmanratio.UpdateEnergy();
       return 1;
     }
-    trial_H = old_H;
     return 0;
   };
 
-  /* [0] -> mu, [1] -> sigma^2  */
-  point<double, 2> params({1., 1.}, MoveParams);
+  /* Preparing output files */
+  array<ofstream, 2> fout_sa;
+  array<string, 2> path_sa = {"out/082-sa_energy.csv", "out/082-sa_params.csv"};
+  for (size_t i = 0; i < 2; ++i) {
+    fout_sa[i].open(path_sa[i]);
+    FileCheck(fout_sa[i], path_sa[i]);
+  }
+  fout_sa[0] << "sa_step,energy,err\n";
+  fout_sa[1] << "sa_step,mu,sigma^2\n";
 
-  /* The actual SA */
-  string path = "08/out/082-params_trajectory.csv";
-  ofstream fout_traj(path);
-  FileCheck(fout_traj, path);
-  fout_traj << "mu,sigma\n";
-
+  pt2D params(move, starting_params);
   for (size_t i = 0; i < 50; ++i) {
-    cout << "beta: " << beta << endl;
+    // C'È BISOGNO DI EQUILIBRAZIONE QUI??
+    /* metro.AutoTune(p0, 0.1, 1000); */
     for (size_t n = 0; n < 40; ++n) {
       params.Move();
-      fout_traj << params[0] << "," << params[1] << endl;
+      fout_sa[0] << (i * 40 + n) << boltzmanratio.prev_ene_[0] << ","
+                 << boltzmanratio.prev_ene_[1] << endl;
+      fout_sa[1] << (i * 40 + n) << params[0] << "," << params[1] << endl;
     }
-    UpdateBeta(1.5);
+    boltzmanratio.UpdateBeta();
   }
+
+  /* Once we get the best parameters... */
+  /* Initializing metropolis */
+  auto db_pdf_ratio = [&params](point<double, 1> x, point<double, 1> y) {
+    return Psi2_gs(x, params.ToArray()) / Psi2_gs(x, params.ToArray());
+  };
+
+  mrt2<1> db_metro(DELTA, db_pdf_ratio, rnd);
+
+  array<double, 1> p0 = {0};
+  db_metro.AutoTune(p0, 0.1, 1000);
 
   /* Initializing data blocking */
-  function<double(point<double, 1>)> pdf =
-      bind(Psi2_gs, placeholders::_1, params);
-  auto m = bind(Mrt2Unif<1>, placeholders::_1, pdf, rnd, DELTA);
-  auto f = bind(Integrand, placeholders::_1, params);
-  dataBlocks<1, 1> minH(STEPS_PER_BLOCK, {0}, m, {f});
+  auto db_eval = bind(Integrand, placeholders::_1, params.ToArray());
+  dataBlocks<1, 1> best_energy(STEPS_PER_BLOCK, db_metro, {db_eval}, p0);
 
-  path = "08/out/082-min_energy.csv";
-  array<ofstream, 1> fout_minh;
-  fout_minh[0].open(path);
-  FileCheck(fout_minh[0], path);
+  /* Preparing output files */
+  string path_db_points = "out/082-db_points.csv";
+  ofstream fout_db_points(path_db_points);
+  FileCheck(fout_db_points, path_db_points);
+  fout_db_points << "sa_step,mu,sigma^2\n";
+
+  string path_db_energy = "out/082-db_energy.csv";
+  array<ofstream, 1> fout_db_energy;
+  fout_db_energy[0].open(path_db_energy);
+  FileCheck(fout_db_energy[0], path_db_energy);
+  fout_db_energy[0] << "sa_step,energy,err\n";
 
   /* Data blocking */
-  for (size_t db = 0; db < 20; db++) {
-    minH.Measure();
-    minH.EvalBlock(fout_minh);
-  }
-
-  fout_minh[0].close();
+  do {
+    best_energy.Measure(1, fout_db_points);
+    best_energy.EvalBlock(fout_db_energy);
+  } while (best_energy.CompletedBlocks() < N_BLOCKS);
 
   return 0;
 }

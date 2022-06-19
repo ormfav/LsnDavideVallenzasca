@@ -8,7 +8,7 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 *****************************************************************
 *****************************************************************/
 
-#include "MD_MC.h"
+#include "../include/041.h"
 #include <cmath>
 #include <fstream>
 #include <iomanip>
@@ -19,9 +19,9 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 using namespace std;
 
 string state = "liquid";
-string indir = "04/in/";
-string outdir = "04/out/";
-string savedir = "04/savestates/";
+string indir = "in/";
+string outdir = "out/";
+string savedir = "savestates/";
 
 int main() {
   cout << "Simulating " + state + " phase\n";

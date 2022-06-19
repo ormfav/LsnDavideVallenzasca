@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
   };
   function<double(pt3D)> aver = [](pt3D p) { return p.Lenght(); };
 
-  mrt2<3, 'u'> metro100_unif(DELTA_100, psi2_100_ratio, rnd);
+  mrt2<3, 'u'> metro100_unif(DELTA_100+2, psi2_100_ratio, rnd);
   mrt2<3, 'g'> metro100_gaus(SIGMA_100, psi2_100_ratio, rnd);
   mrt2<3, 'u'> metro210_unif(DELTA_210, psi2_210_ratio, rnd);
   mrt2<3, 'g'> metro210_gaus(SIGMA_210, psi2_210_ratio, rnd);
@@ -49,17 +49,14 @@ int main(int argc, char *argv[]) {
   }
 
   cout << "Orbital: 100. Proposed step: unif\n";
-  cout << "Acceptance: "
-       << metro100_unif.Equilibrate(p0_100, 100, aver, fout_equi[0]) << endl;
+  /* metro100_unif.Equilibrate(p0_100, 100, aver, fout_equi[0]); */
+  metro100_unif.AutoTune(p0_100, 0.03, 500);
   cout << "Orbital: 100. Proposed step: gauss\n";
-  cout << "Acceptance: "
-       << metro100_gaus.Equilibrate(p0_100, 100, aver, fout_equi[1]) << endl;
+  metro100_gaus.Equilibrate(p0_100, 100, aver, fout_equi[1]);
   cout << "Orbital: 210. Proposed step: unif\n";
-  cout << "Acceptance: "
-       << metro100_unif.Equilibrate(p0_210, 100, aver, fout_equi[2]) << endl;
+  metro100_unif.Equilibrate(p0_210, 100, aver, fout_equi[2]);
   cout << "Orbital: 210. Proposed step: gauss\n";
-  cout << "Acceptance: "
-       << metro100_gaus.Equilibrate(p0_210, 100, aver, fout_equi[3]) << endl;
+  metro100_gaus.Equilibrate(p0_210, 100, aver, fout_equi[3]);
 
   for (auto &file : fout_equi)
     file.close();

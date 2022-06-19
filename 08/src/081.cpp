@@ -1,65 +1,57 @@
-#include "../../lib/DataBlocking/datablocking.h"
-#include "../../lib/Metropolis/metropolis.h"
-#include "../../lib/Misc/misc.h"
-#include "../../lib/Point/point.h"
-#include "../../lib/Random/random.h"
+#include "../../lib/DataBlocking/include/datablocking.h"
+#include "../../lib/Metropolis/include/metropolis.h"
+#include "../../lib/Misc/include/misc.h"
+#include "../../lib/Point/include/point.h"
+#include "../../lib/Random/include/random.h"
 #include <cmath>
 #include <fstream>
 #include <functional>
 #include <iostream>
 
 using namespace std;
+using pt1D = point<double, 1>;
 
-/* #include "../config/081-conf.inl" */
-#define DELTA 3
-
-#define N_BLOCKS 100
-#define STEPS_PER_BLOCK 100000
-
-double Integrand(point<double, 1> p, array<double, 2> &params) {
-  double mu = params[0], sigma2 = params[1];
-  double x = p[0];
-  double x2 = x * x;
-
-  double kin = mu * mu + x2 - 2 * mu * x * tanh(mu * x / sigma2) - sigma2;
-  double pot = x2 * x2 - 2.5 * x2;
-
-  return pot - 0.5 * kin / (sigma2 * sigma2);
-}
-
-double Psi2_gs(point<double, 1> p, array<double, 2> &params) {
-  double mu = params[0], sigma2 = params[1];
-  double psi = exp(-0.5 * (p[0] - mu) * (p[0] - mu) / sigma2) +
-               exp(-0.5 * (p[0] + mu) * (p[0] + mu) / sigma2);
-  return psi * psi;
-};
+#include "../in/081-conf_db.inl"
+#include "../in/081-conf_metro.inl"
+#include "../include/081.h"
 
 int main(int argc, char *argv[]) {
   /* Initializing random number generator */
-  Random rnd("lib/Random/Primes", "lib/Random/seed.in");
+  Random rnd("in/Primes", "in/seed.in");
 
-  array<double, 2> params = {1,1};
+  array<double, 2> params = {1, 1};
+
+  /* Initializing metropolis */
+  auto pdf_ratio = [&params](pt1D q, pt1D p) {
+    return Psi2_gs(q, params) / Psi2_gs(p, params);
+  };
+
+  mrt2<1> metro(DELTA, pdf_ratio, rnd);
+
+  array<double, 1> p0 = {0};
+
+  string path_equi = "out/081-equi.csv";
+  ofstream fout_equi(path_equi);
+  FileCheck(fout_equi, path_equi);
+
+  cout << "Acceptance: " << metro.Equilibrate(p0, 500,fout_equi) << endl;
 
   /* Initializing data blocking */
-  function<double(point<double, 1>)> pdf =
-      bind(Psi2_gs, placeholders::_1, params);
-  auto m = bind(Mrt2Unif<1>, placeholders::_1, pdf, rnd, DELTA);
-  auto f = bind(Integrand, placeholders::_1, params);
-  dataBlocks<1, 1> energy(STEPS_PER_BLOCK, {0}, m, {f});
+  auto db_eval = bind(Integrand, placeholders::_1, params);
+  dataBlocks<1, 1> energy(STEPS_PER_BLOCK, metro, {db_eval}, p0);
 
-  string path = "08/out/081-energy.csv";
+  string path = "out/081-energy.csv";
   array<ofstream, 1> fout;
   fout[0].open(path);
   FileCheck(fout[0], path);
 
   /* Data blocking */
-  for (size_t idb = 0; idb < N_BLOCKS; ++idb) {
-
-    cout << "--- Block " << (idb + 1) << " ---\n";
+  do {
+    cout << "--- Block " << (energy.CompletedBlocks() + 1) << " ---\n";
     cout << "Acceptance: " << energy.Measure() << endl;
     energy.EvalBlock(fout);
     cout << endl;
-  }
+  } while (energy.CompletedBlocks() < N_BLOCKS);
 
   fout[0].close();
 
