@@ -50,10 +50,7 @@ Population<T>::Population(size_t n_individuals, Decoder<T> &dec, Random &rnd)
 
 template <typename T>
 size_t Population<T>::Select(Random &rnd, double selection) {
-  if (elite_)
-    return 1 + (population_.size() - 1) * pow(rnd.Rannyu(), selection);
-  else
-    return population_.size() * pow(rnd.Rannyu(), selection);
+    return elite_ + (population_.size() - elite_) * pow(rnd.Rannyu(), selection);
 }
 /* Funziona solo per popolazioni pari! */
 template <typename T>

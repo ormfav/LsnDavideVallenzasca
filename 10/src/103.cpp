@@ -95,12 +95,12 @@ int main(int argc, char *argv[]) {
       double in_cost, out_cost = pop.GetBest().GetCost();
 
       if (rank == 0) {
-        /* node=vector_index sends to/receives from node=vector_value */
+        /* node=vector_index sends-to/receives-from node=vector_value */
         sendto.reserve(size);
         for (int i = 0; i < size; ++i)
           sendto.push_back(i);
         receivefrom = sendto;
-        for (int i = 0; i < int(size * 0.5); ++i)
+        for (int i = 0; i < int(size * 0.5)+5; ++i)
           swap(sendto[int(rnd.Rannyu() * sendto.size())],
                sendto[int(rnd.Rannyu() * sendto.size())]);
         for (size_t i = 0; i < receivefrom.size(); ++i)
@@ -121,27 +121,28 @@ int main(int argc, char *argv[]) {
                 &request);
       MPI_Irecv(in_chromo.data(), in_chromo.size(), MPI_INTEGER, sender,
                 tag_chromosome, MPI_COMM_WORLD, &request);
-      MPI_Irecv(&in_cost, 1, MPI_DOUBLE, receiver, tag_cost, MPI_COMM_WORLD,
+      MPI_Irecv(&in_cost, 1, MPI_DOUBLE, sender, tag_cost, MPI_COMM_WORLD,
                 &request);
 
       MPI_Barrier(MPI_COMM_WORLD);
 
-      for (int i = 0; i < pop.GetBest().Size(); ++i)
+      for (size_t i = 0; i < pop.GetBest().Size(); ++i)
         pop.GetBest()[i] = in_chromo[i];
       pop.GetBest().GetCost() = in_cost;
       pop.Sort();
     }
   };
 
+  size_t checkpoint = size_t(N_GEN * 3 / 3);
   /* Evolving without elite */
   cout << "Performing evolution without elite on node: " << rank << endl;
-  for (size_t i = 0; i < size_t(N_GEN * 2 / 3); ++i)
+  for (size_t i = 0; i < checkpoint; ++i)
     evolving(i);
 
   /* Evolving with elite */
   cout << "Performing evolution with elite on node: " << rank << endl;
   pop.SetElite();
-  for (size_t i = size_t(N_GEN * 2 / 3) + 1; i < N_GEN; ++i)
+  for (size_t i = checkpoint; i < N_GEN; ++i)
     evolving(i);
 
   bestcost[0].push_back(pop.BestCost(0));

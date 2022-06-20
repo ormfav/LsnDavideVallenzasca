@@ -1,7 +1,6 @@
+#Aliases
 CXX = g++
 CXXFLAGS = -Wall -O3 --std=c++11
-
-.PHONY: all clean
 
 BIN := bin/
 OBJ := obj/
@@ -11,30 +10,26 @@ CFG := in/
 LIB := ../lib/
 
 RANDOM := $(LIB)Random/
-GENALG := $(LIB)Ga/
-MISCFC := $(LIB)Misc/
+
 
 #User interface
-.PHONY: all clean 051 
+.PHONY: all clean 061 
 
-all: $(BIN)091.x
+all: $(BIN)061.x 
 
 clean:
 	@rm -rf $(OBJ) $(BIN)
 	@echo "All clean"
 
-091: $(BIN)091.x
+061: $(BIN)061.x
 
 #Rules
-$(BIN)091.x: $(OBJ)091.o $(RANDOM)$(OBJ)random.o $(GENALG)$(OBJ)individual.o $(MISCFC)$(OBJ)misc.o | $(BIN)
+$(BIN)061.x: $(OBJ)061.o $(RANDOM)$(OBJ)random.o | $(BIN)
 	@echo "Linking $^"
 	$(CXX) $(CXXFLAGS) $^ -o $@
-$(OBJ)091.o: $(SRC)091.cpp $(wildcard $(INC)*.h) $(wildcard $(CFG)091*) $(RANDOM)$(INC)random.h $(wildcard $(GENALG)$(INC)*.h) | $(OBJ) 
+$(OBJ)061.o: $(SRC)061.cpp $(INC)061.h $(RANDOM)$(INC)random.h | $(OBJ) 
 	@echo "Compiling $@"
-	$(CXX) $(CXXFLAGS) -c src/091.cpp -o $@
-
-$(GENALG)$(OBJ)individual.o: 
-	$(MAKE) -C $(GENALG)
+	$(CXX) $(CXXFLAGS) -c src/061.cpp -o $@
 
 $(RANDOM)$(OBJ)random.o: 
 	$(MAKE) -C $(RANDOM)
@@ -49,3 +44,5 @@ $(BIN):
 $(OBJ):
 	@echo "Creating $@"
 	@mkdir -p $@
+
+

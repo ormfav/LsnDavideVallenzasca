@@ -98,12 +98,13 @@ int main(int argc, char *argv[]) {
     pop.Evolve(rnd, SELECTION, crs, {&m1, &m2, &m3, &m4});
   };
 
+  size_t checkpoint = size_t(N_GEN * 3 / 3);
   /* Evolving without elite */
-  for (size_t i = 0; i < size_t(N_GEN * 2 / 3); ++i)
+  for (size_t i = 0; i < checkpoint; ++i)
     evolving(i);
   /* Evolving with elite */
   pop.SetElite();
-  for (size_t i = size_t(N_GEN * 2 / 3) + 1; i < N_GEN; ++i)
+  for (size_t i = checkpoint; i < N_GEN; ++i)
     evolving(i);
 
   fout_bestcost[0] << N_GEN << "," << pop.BestCost(0) << endl;

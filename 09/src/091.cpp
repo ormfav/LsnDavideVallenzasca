@@ -9,15 +9,15 @@
 #include "../../lib/Misc/include/misc.h"
 #include "../../lib/Random/include/random.h"
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <set>
 
 using namespace std;
 
-#include "../in/091-conf_simulation.inl"
 #include "../in/091-conf_ga.inl"
+#include "../in/091-conf_simulation.inl"
 
 int main(int argc, char *argv[]) {
   Random rnd("in/Primes", "in/seed.in");
@@ -118,12 +118,13 @@ int main(int argc, char *argv[]) {
   };
 
   /* Evolving without elite */
-  for (size_t i = 0; i < size_t(N_GEN * 2 / 3); ++i)
+  size_t checkpoint = size_t(N_GEN * 3 / 3);
+  for (size_t i = 0; i < checkpoint; ++i)
     evolving(i);
   /* Evolving with elite */
   pop_circle.SetElite();
   pop_square.SetElite();
-  for (size_t i = size_t(N_GEN * 2 / 3) + 1; i < N_GEN; ++i)
+  for (size_t i = checkpoint; i < N_GEN; ++i)
     evolving(i);
 
   fout_bestcost[0] << N_GEN << "," << pop_circle.BestCost(0) << endl;

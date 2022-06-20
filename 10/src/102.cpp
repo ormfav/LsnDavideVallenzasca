@@ -87,21 +87,22 @@ int main(int argc, char *argv[]) {
     pop.Evolve(rnd, SELECTION, crs, {&m1, &m2, &m3, &m4});
   };
 
+  size_t checkpoint = size_t(N_GEN * 3 / 3);
   /* Evolving without elite */
   cout << "Performing evolution without elite on node: " << rank << endl;
-  for (size_t i = 0; i < size_t(N_GEN * 2 / 3); ++i)
+  for (size_t i = 0; i < checkpoint; ++i)
     evolving(i);
 
   /* Evolving with elite */
   cout << "Performing evolution with elite on node: " << rank << endl;
   pop.SetElite();
-  for (size_t i = size_t(N_GEN * 2 / 3) + 1; i < N_GEN; ++i)
+  for (size_t i = checkpoint; i < N_GEN; ++i)
     evolving(i);
 
   bestcost[0].push_back(pop.BestCost(0));
   bestcost[1].push_back(pop.BestCost(0.5));
 
-  /* Collect cost and rank to node 0 */
+  /* Collect best cost and rank  */
   cout << "Gathering all results\n";
 
   struct {

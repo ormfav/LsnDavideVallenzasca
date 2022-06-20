@@ -14,8 +14,20 @@ RANDOM := $(LIB)Random/
 GENALG := $(LIB)Ga/
 MISCFC := $(LIB)Misc/
 
+#User interface
+.PHONY: all clean 101 102 103 
+
 all: $(BIN)101.x $(BIN)102.x $(BIN)103.x
 
+clean:
+	@rm -rf $(OBJ) $(BIN)
+	@echo "All clean"
+
+101: $(BIN)101.x
+102: $(BIN)102.x
+103: $(BIN)103.x
+
+#Rules
 $(BIN)101.x: $(OBJ)101.o $(RANDOM)$(OBJ)random.o $(GENALG)$(OBJ)individual.o $(MISCFC)$(OBJ)misc.o | $(BIN)
 	@echo "Linking $^"
 	$(CXX) $(CXXFLAGS) $^ -o $@
@@ -54,6 +66,3 @@ $(OBJ):
 	@echo "Creating $@"
 	@mkdir -p $@
 
-clean:
-	@rm -rf $(OBJ) $(BIN)
-	@echo "All clean"

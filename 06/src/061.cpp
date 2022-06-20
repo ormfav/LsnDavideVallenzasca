@@ -8,7 +8,7 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 *****************************************************************
 *****************************************************************/
 
-#include "Monte_Carlo_ISING_1D.h"
+#include "../include/061.h"
 #include <cmath>
 #include <fstream>
 #include <iomanip>
@@ -17,17 +17,19 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 
 using namespace std;
 
-string indir = "06/in/";
-string outdir = "06/out/";
-string savedir = "06/savestate/";
+string indir = "in/";
+string outdir = "out/";
+string savedir = "savestate/";
 
 int main() {
+  ofstream equi(outdir+"equi");
   Input();                                 // Inizialization
   Equilibration();
   for (int iblk = 1; iblk <= nblk; ++iblk) // Simulation
   {
     Reset(iblk); // Reset block averages
     for (int istep = 1; istep <= nstep; ++istep) {
+      equi<<walker[im]/nspin<<endl;
       Move(metro);
       Measure();
       Accumulate(); // Update block averages
@@ -82,7 +84,6 @@ void Input(void) {
   cout << "External field = " << h << endl << endl;
 
   ReadInput >> tc; // equilibration time
-  /* if (metro!=1) tc=0; //gibbs does not need equilibration */
 
   ReadInput >> nblk;
 
@@ -123,7 +124,6 @@ void Input(void) {
         s[i] = -1;
     }
     //Clear output files
-    // Posso farlo meglio?
     cout<<"Clearing files in "<<outdir<<endl<<endl;
     ofstream clear;
     clear.open(outdir + "output.ene.0", ios::trunc);
@@ -190,7 +190,7 @@ void Measure() {
 
   // cycle over spins
   for (int i = 0; i < nspin; ++i) {
-    u -= J * s[i] * s[Pbc(i + 1)] + 0.5 * h * (s[i] + s[Pbc(i + 1)]);
+    u -= (J * s[i] * s[Pbc(i + 1)] + 0.5 * h * (s[i] + s[Pbc(i + 1)]));
     m += s[i];
   }
   // Internal energy
@@ -234,7 +234,7 @@ void Averages(int iblk) // Print results for current block
 {
 
   ofstream foutE, foutC, foutM, foutX;
-  const int wd = 12;
+  const int wd = 16;
 
   cout << "Block number " << iblk << endl;
   cout << "Acceptance rate " << accepted / attempted << endl << endl;

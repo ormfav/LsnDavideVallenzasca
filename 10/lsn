@@ -1,0 +1,9 @@
+alias run-101='mpiexec bin/101.x'
+alias run-102='mpiexec bin/102.x -np'
+alias run-103='mpiexec bin/103.x -np'
+
+alias mkrun-101='make 101 && echo "Make done. Exec." && mpiexec bin/101.x'
+alias mkrun-102='make 102 && echo "Make done. Exec." && mpiexec bin/102.x -np'
+alias mkrun-103='make 103 && echo "Make done. Exec." && mpiexec bin/103.x -np'
+
+alias clean-output='rm out/*'
