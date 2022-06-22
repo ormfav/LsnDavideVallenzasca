@@ -12,7 +12,7 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 #define __fluid__
 
 // Random numbers
-#include "../../lib/Random/random.h"
+#include "../../lib/Random/include/random.h"
 int seed[4];
 Random rnd;
 

@@ -3,6 +3,8 @@
 #include "../../lib/Point/include/point.h"
 #include "../../lib/Random/include/random.h"
 
+using pt1D = point<double, 1>;
+
 double Integrand(point<double, 1> p, array<double, 2> &params) {
   double mu = params[0], sigma2 = params[1];
   double x = p[0];
@@ -21,54 +23,51 @@ double Psi2_gs(point<double, 1> p, array<double, 2> &params) {
   return psi * psi;
 }
 
-#include "../in/082-conf_db.inl"
-#include "../in/082-conf_metro.inl"
-array<double, 2> EvalEnergy(array<double, 2> &params, Random &rnd) {
+pair<double, double> EvalEnergy(array<double, 2> &params, double delta,
+                                size_t steps_per_block, size_t n_blocks,
+                                Random &rnd) {
   /* Initializing metropolis */
-  auto pdf_ratio = [&params](point<double, 1> x, point<double, 1> y) {
-    return Psi2_gs(x, params) / Psi2_gs(x, params);
+  auto pdf_ratio = [&params](pt1D q, pt1D p) {
+    return Psi2_gs(q, params) / Psi2_gs(p, params);
   };
 
-  mrt2<1> metro(DELTA, pdf_ratio, rnd);
-
+  mrt2<1> metro(delta, pdf_ratio, rnd);
   array<double, 1> p0 = {0};
-  metro.AutoTune(p0, 0.1, 1000);
+  metro.AutoTune(p0, 0.05, 500);
 
   /* Initializing data blocking */
   auto db_eval = bind(Integrand, placeholders::_1, params);
-  dataBlocks<1, 1> energy(STEPS_PER_BLOCK, metro, {db_eval}, p0);
+  dataBlocks<1, 1> energy(steps_per_block, metro, {db_eval}, p0);
 
   /* Data blocking */
   do {
     energy.Measure();
     energy.EvalBlock();
-  } while (energy.CompletedBlocks() < N_BLOCKS);
+  } while (energy.CompletedBlocks() < n_blocks);
 
   return {energy.GetPrgAve()[0], energy.GetPrgErr()[0]};
 }
 
-struct boltzmanRatio {
-  boltzmanRatio(double beta, Random &rnd, array<double, 2> &q);
-  double operator()(point<double, 2> &);
-  void UpdateEnergy() { prev_ene_ = trial_ene_; };
-  void UpdateBeta() { beta_ += 1.5; };
+void EvalEnergy(array<double, 2> &params, ofstream &fout_pt,
+                array<ofstream, 1> &fout_ene, double delta,
+                size_t steps_per_block, size_t n_blocks, Random &rnd) {
+  /* Initializing metropolis */
+  auto pdf_ratio = [&params](pt1D q, pt1D p) {
+    return Psi2_gs(q, params) / Psi2_gs(p, params);
+  };
 
-  double beta_;
-  /* energy+err of the previous step */
-  array<double, 2> prev_ene_;
-  /* store energy+err waiting for it to be accepted */
-  array<double, 2> trial_ene_;
-  Random *rnd_;
-};
+  mrt2<1> metro(delta, pdf_ratio, rnd);
+  array<double, 1> p0 = {0};
+  metro.AutoTune(p0, 0.05, 500);
 
-boltzmanRatio::boltzmanRatio(double beta, Random &rnd, array<double, 2> &q)
-    : beta_(beta), rnd_(&rnd) {
-  prev_ene_ = EvalEnergy(q, *rnd_);
-};
+  /* Initializing data blocking */
+  auto db_eval = bind(Integrand, placeholders::_1, params);
+  dataBlocks<1, 1> energy(steps_per_block, metro, {db_eval}, p0);
 
-double boltzmanRatio::operator()(point<double, 2> &q) {
-  trial_ene_ = EvalEnergy(q.ToArray(), *rnd_);
+  /* Data blocking */
 
-  double dH = prev_ene_[0] - trial_ene_[0];
-  return exp(beta_ * dH);
+  do {
+    energy.Measure(1, fout_pt);
+    energy.EvalBlock(fout_ene);
+  } while (energy.CompletedBlocks() < n_blocks);
 }

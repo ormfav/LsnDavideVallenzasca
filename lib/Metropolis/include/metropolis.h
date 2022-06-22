@@ -42,9 +42,10 @@ mrt2<DIM, STEP_TYPE>::mrt2(
 
 template <size_t DIM, char STEP_TYPE>
 bool mrt2<DIM, STEP_TYPE>::operator()(point<double, DIM> &p) {
+
   auto m = [this](point<double, DIM> &p) {
     for (double &x : p.ToArray())
-      x += TrialStep<STEP_TYPE>(*(this->rnd_), this->delta_);
+      x = TrialStep<STEP_TYPE>(x, *(this->rnd_), this->delta_);
     return 1;
   };
   point<double, DIM> q(m, p.ToArray());

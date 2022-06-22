@@ -11,82 +11,77 @@
 using namespace std;
 using pt2D = point<double, 2>;
 
+#include "../in/082-conf_db.inl"
+#include "../in/082-conf_metro.inl"
 #include "../include/082.h"
 
 int main(int argc, char *argv[]) {
   /* Initializing random number generator */
   Random rnd("in/Primes", "in/seed.in");
 
-  /* SA */
-  array<double, 2> starting_params = {1., 1.};
-  boltzmanRatio boltzmanratio(1, rnd, starting_params);
-  auto pdf_ratio = [&boltzmanratio](pt2D &q, pt2D &p) {
-    return boltzmanratio(q);
+  double oldH, olderr;
+  /* To avoid going throug energy evaluation two times per metropolis step.
+   * tempH stores new energy and if move is accepted copies its value in oldH */
+  double tempH, temperr;
+
+  double beta = 1;
+
+  auto boltzmannratio = [&](pt2D &params, pt2D &for_compatibility) {
+    tie(tempH, temperr) =
+        EvalEnergy(params.ToArray(), DELTA_EN, STEPS_PER_BLOCK, N_BLOCKS, rnd);
+    return exp(beta * (oldH - tempH));
   };
-  mrt2<2> metro(1, pdf_ratio, rnd);
-  auto move = [&metro, &boltzmanratio](pt2D &p) {
-    if (metro(p)) {
-      boltzmanratio.UpdateEnergy();
+
+  /* Metropoplis wrapper to allow energy update */
+  mrt2<2, '+'> metro(DELTA_SA, boltzmannratio, rnd);
+  auto move_params = [&](pt2D &params) {
+    if (metro(params)) {
+      oldH = tempH;
+      olderr = temperr;
       return 1;
     }
     return 0;
   };
 
-  /* Preparing output files */
-  array<ofstream, 2> fout_sa;
-  array<string, 2> path_sa = {"out/082-sa_energy.csv", "out/082-sa_params.csv"};
-  for (size_t i = 0; i < 2; ++i) {
-    fout_sa[i].open(path_sa[i]);
-    FileCheck(fout_sa[i], path_sa[i]);
-  }
-  fout_sa[0] << "sa_step,energy,err\n";
-  fout_sa[1] << "sa_step,mu,sigma^2\n";
+  /* SA */
+  array<double, 2> starting_params = {1, 1};
+  EvalEnergy(starting_params, DELTA_EN, STEPS_PER_BLOCK, N_BLOCKS, rnd);
+  pt2D params(move_params, starting_params);
 
-  pt2D params(move, starting_params);
-  for (size_t i = 0; i < 50; ++i) {
-    // C'È BISOGNO DI EQUILIBRAZIONE QUI??
-    /* metro.AutoTune(p0, 0.1, 1000); */
-    for (size_t n = 0; n < 40; ++n) {
+  string path = "out/082-params.csv";
+  ofstream fout(path);
+  FileCheck(fout, path);
+  fout << "mu,sigma^2,energy,err\n";
+  fout << params[0] << "," << params[1] << "," << oldH << "," << olderr << endl;
+
+  for (size_t i = 0; i < 14; ++i) {
+    cout << "<---: beta = " << beta << " :--->\n";
+    for (size_t j = 0; j < 10; ++j) {
+      cout << "step: " << (j + 1) << "/10\n";
       params.Move();
-      fout_sa[0] << (i * 40 + n) << boltzmanratio.prev_ene_[0] << ","
-                 << boltzmanratio.prev_ene_[1] << endl;
-      fout_sa[1] << (i * 40 + n) << params[0] << "," << params[1] << endl;
+      fout << params[0] << "," << params[1] << "," << oldH << "," << olderr
+           << endl;
     }
-    boltzmanratio.UpdateBeta();
+    beta *= 1.5;
   }
+  fout.close();
 
-  /* Once we get the best parameters... */
-  /* Initializing metropolis */
-  auto db_pdf_ratio = [&params](point<double, 1> x, point<double, 1> y) {
-    return Psi2_gs(x, params.ToArray()) / Psi2_gs(x, params.ToArray());
-  };
+  /* Datablocking with best params */
+  string path_pt = "out/082-points.dat";
+  string path_ene = "out/082-best_energy.csv";
 
-  mrt2<1> db_metro(DELTA, db_pdf_ratio, rnd);
+  ofstream fout_pt(path_pt);
+  array<ofstream, 1> fout_ene;
+  fout_ene[0].open(path_ene);
 
-  array<double, 1> p0 = {0};
-  db_metro.AutoTune(p0, 0.1, 1000);
+  FileCheck(fout_pt, path_pt);
+  FileCheck(fout_ene[0], path_ene);
 
-  /* Initializing data blocking */
-  auto db_eval = bind(Integrand, placeholders::_1, params.ToArray());
-  dataBlocks<1, 1> best_energy(STEPS_PER_BLOCK, db_metro, {db_eval}, p0);
+  EvalEnergy(params.ToArray(), fout_pt, fout_ene, DELTA_EN, STEPS_PER_BLOCK,
+             N_BLOCKS, rnd);
 
-  /* Preparing output files */
-  string path_db_points = "out/082-db_points.csv";
-  ofstream fout_db_points(path_db_points);
-  FileCheck(fout_db_points, path_db_points);
-  fout_db_points << "sa_step,mu,sigma^2\n";
-
-  string path_db_energy = "out/082-db_energy.csv";
-  array<ofstream, 1> fout_db_energy;
-  fout_db_energy[0].open(path_db_energy);
-  FileCheck(fout_db_energy[0], path_db_energy);
-  fout_db_energy[0] << "sa_step,energy,err\n";
-
-  /* Data blocking */
-  do {
-    best_energy.Measure(1, fout_db_points);
-    best_energy.EvalBlock(fout_db_energy);
-  } while (best_energy.CompletedBlocks() < N_BLOCKS);
+  fout_pt.close();
+  fout_ene[0].close();
 
   return 0;
 }
