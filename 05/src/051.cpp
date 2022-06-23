@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
   mrt2<3, 'u'> metro210_unif(DELTA_210, psi2_210_ratio, rnd);
   mrt2<3, 'g'> metro210_gaus(SIGMA_210, psi2_210_ratio, rnd);
 
-  array<double, 3> p0_100 = {0, 0, 50};
+  array<double, 3> p0_100 = {0, 0, 0};
   array<double, 3> p0_210 = {0, 0, 2};
 
   array<ofstream, 4> fout_equi;
@@ -50,16 +50,16 @@ int main(int argc, char *argv[]) {
 
   cout << "Orbital: 100. Proposed step: unif\n";
   cout << "Acceptance: "
-       << metro100_unif.Equilibrate(p0_100, 100, aver, fout_equi[0]) << endl;
+       << metro100_unif.Equilibrate(p0_100, 500, aver, fout_equi[0]) << endl;
   cout << "Orbital: 100. Proposed step: gauss\n";
   cout << "Acceptance: "
-       << metro100_gaus.Equilibrate(p0_100, 100, aver, fout_equi[1]) << endl;
+       << metro100_gaus.Equilibrate(p0_100, 500, aver, fout_equi[1]) << endl;
   cout << "Orbital: 210. Proposed step: unif\n";
   cout << "Acceptance: "
-       << metro100_unif.Equilibrate(p0_210, 100, aver, fout_equi[2]) << endl;
+       << metro100_unif.Equilibrate(p0_210, 500, aver, fout_equi[2]) << endl;
   cout << "Orbital: 210. Proposed step: gauss\n";
   cout << "Acceptance: "
-       << metro100_gaus.Equilibrate(p0_210, 100, aver, fout_equi[3]) << endl;
+       << metro100_gaus.Equilibrate(p0_210, 500, aver, fout_equi[3]) << endl;
 
   for (auto &file : fout_equi)
     file.close();
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
   for (size_t i = 0; i < N_BLOCKS; ++i) {
     cout << "--- Block " << (i + 1) << " ---\n";
     for (size_t j = 0; j < 4; ++j) {
-      cout << path_r[j].substr(11, 10) + " acceptance: "
+      cout << path_r[j].substr(8, 10) + " acceptance: "
            << r[j].Measure(100, fout_points[j]) << endl;
       r[j].EvalBlock(fout_r[j]);
     }

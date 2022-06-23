@@ -26,10 +26,24 @@ int main(int argc, char *argv[]) {
 
   double beta = 1;
 
-  auto boltzmannratio = [&](pt2D &params, pt2D &for_compatibility) {
+  auto boltzmannratio = [&](pt2D &trial_p, pt2D &p) {
     tie(tempH, temperr) =
-        EvalEnergy(params.ToArray(), DELTA_EN, STEPS_PER_BLOCK, N_BLOCKS, rnd);
-    return exp(beta * (oldH - tempH));
+        EvalEnergy(trial_p.ToArray(), DELTA_EN, STEPS_PER_BLOCK, N_BLOCKS, rnd);
+
+    array<double, 2> num, den;
+    for (size_t i = 0; i < 2; ++i) {
+      if (p[i] >= DELTA_SA - trial_p[i])
+        num[i] = trial_p[i] / DELTA_SA;
+      else
+        num[i] = 1 - trial_p[i] / DELTA_SA;
+      if (trial_p[i] >= DELTA_SA - p[i])
+        den[i] = p[i] / DELTA_SA;
+      else
+        den[i] = 1 - p[i] / DELTA_SA;
+    }
+    double trial_step_ratio = num[0] * num[1] / (den[0] * den[1]);
+
+    return trial_step_ratio * exp(beta * (oldH - tempH));
   };
 
   /* Metropoplis wrapper to allow energy update */
@@ -56,7 +70,7 @@ int main(int argc, char *argv[]) {
 
   for (size_t i = 0; i < 14; ++i) {
     cout << "<---: beta = " << beta << " :--->\n";
-    for (size_t j = 0; j < 10; ++j) {
+    for (size_t j = 0; j < 10+2*i; ++j) {
       cout << "step: " << (j + 1) << "/10\n";
       params.Move();
       fout << params[0] << "," << params[1] << "," << oldH << "," << olderr

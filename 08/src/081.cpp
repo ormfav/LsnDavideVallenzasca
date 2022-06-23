@@ -34,7 +34,9 @@ int main(int argc, char *argv[]) {
   ofstream fout_equi(path_equi);
   FileCheck(fout_equi, path_equi);
 
-  cout << "Acceptance: " << metro.Equilibrate(p0, 500,fout_equi) << endl;
+  auto f_equi = [](pt1D p) { return p.Lenght(); };
+  cout << "Acceptance: " << metro.Equilibrate(p0, 500, f_equi, fout_equi)
+       << endl;
 
   /* Initializing data blocking */
   auto db_eval = bind(Integrand, placeholders::_1, params);

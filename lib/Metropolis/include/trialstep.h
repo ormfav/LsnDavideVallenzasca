@@ -19,11 +19,10 @@ template <> double TrialStep<'u'>(double x, Random &rnd, double delta) {
 }
 
 template <> double TrialStep<'+'>(double x, Random &rnd, double delta) {
-  double ret;
-  do {
-    ret = x + rnd.Rannyu(-delta, delta);
-  } while (ret < 0);
-  return ret;
+  double r;
+  r = x + rnd.Rannyu(-delta, delta);
+  int sign = (r > 0) - (r < 0);
+  return sign * r;
 }
 
 template <> double TrialStep<'g'>(double x, Random &rnd, double delta) {

@@ -61,5 +61,3 @@ $(BIN):
 $(OBJ):
 	@echo "Creating $@"
 	@mkdir -p $@
-
-

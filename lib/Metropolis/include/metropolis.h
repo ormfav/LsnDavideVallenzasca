@@ -100,7 +100,7 @@ double mrt2<DIM, STEP_TYPE>::Equilibrate(array<double, DIM> &p, size_t steps,
       to_print.append(to_string(x));
       to_print.push_back(',');
     }
-    to_print.pop_back();
+    to_print.pop_back(); //delete last comma
     fout << to_print << endl;
   }
 
@@ -130,6 +130,7 @@ void mrt2<DIM, STEP_TYPE>::AutoTune(array<double, DIM> &p, double tollerance,
     cout << dmin << " " << delta_ << " " << dmax << endl;
     for (size_t i = 0; i < steps; ++i)
       q.Move();
+    r = q;
     acc = q.Rate();
     display_info();
     if (acc < tollmin) {
@@ -143,7 +144,6 @@ void mrt2<DIM, STEP_TYPE>::AutoTune(array<double, DIM> &p, double tollerance,
       p = q.ToArray();
       return;
     }
-    r = q;
   } while (dmin * dmax == 0);
 
   /* Second part: bisection method */
@@ -153,6 +153,7 @@ void mrt2<DIM, STEP_TYPE>::AutoTune(array<double, DIM> &p, double tollerance,
     cout << dmin << " " << delta_ << " " << dmax << endl;
     for (size_t i = 0; i < steps; ++i)
       q.Move();
+    r = q;
     acc = q.Rate();
     tollerance_ = fabs(acc - 0.5);
     display_info();
@@ -160,7 +161,6 @@ void mrt2<DIM, STEP_TYPE>::AutoTune(array<double, DIM> &p, double tollerance,
       dmax = delta_;
     else
       dmin = delta_;
-    r = q;
   } while (!IsTuned(tollerance));
 
   p = r.ToArray();
