@@ -110,6 +110,7 @@ void Input(void) {
   double aux = 8. * pi * rho;
   vtail = aux / (9. * pow(rcut, 9)) - aux / (3. * pow(rcut, 3));
   ptail = 4. * aux / (9. * pow(rcut, 9)) - 2. * aux / (3. * pow(rcut, 3));
+  ptail *= rho;
 
   ReadInput >> delta;
 
@@ -138,7 +139,6 @@ void Input(void) {
   // prepare histogram for g(r), stored in walker starting from
   // n_props (5)
   nbins = 100;
-  /* PERCHé BOX/2?? */
   bin_size = 0.5 * box / nbins;
 
   // Read initial configuration
@@ -209,8 +209,7 @@ void Input(void) {
   cout << "Initial temperature      = " << walker[it] << endl;
   cout << "Initial kinetic energy   = " << walker[ik] / (double)npart << endl;
   cout << "Initial total energy     = " << walker[ie] / (double)npart << endl;
-  cout << "Initial pressure         = " << walker[ip] + ptail
-       << endl; // DEVO DIVIDERE PER NPART???
+  cout << "Initial pressure         = " << walker[ip] + ptail << endl;
 
   return;
 }
@@ -354,7 +353,6 @@ void Measure() // Properties measurement
       dr = dx * dx + dy * dy + dz * dz;
       dr = sqrt(dr);
 
-      /* DEVO RESETTARE??? */
       /* Update the histogram  */
       walker[n_props + (int)(dr / bin_size)] += 2;
 
@@ -369,11 +367,11 @@ void Measure() // Properties measurement
   for (int i = 0; i < npart; ++i)
     kin += 0.5 * (vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]);
 
-  walker[iv] = 4.0 * v;                              // Potential energy
-  walker[ik] = kin;                                  // Kinetic energy
-  walker[it] = (2.0 / 3.0) * kin / (double)npart;    // Temperature
-  walker[ie] = 4.0 * v + kin;                        // Total energy;
-  walker[ip] = rho * temp + w / vol / (double)npart; // Pressure
+  walker[iv] = 4.0 * v;                           // Potential energy
+  walker[ik] = kin;                               // Kinetic energy
+  walker[it] = (2.0 / 3.0) * kin / (double)npart; // Temperature
+  walker[ie] = 4.0 * v + kin;                     // Total energy;
+  walker[ip] = rho * walker[it] + w / vol;        // Pressure
 
   return;
 }
@@ -484,8 +482,8 @@ void Averages(int iblk) // Print results for current block
     if (iblk == nblk) {
       err_gdir = Error(glob_av[iwalk], glob_av2[iwalk], iblk);
       ofstream Gfin(outdir + state + "/output_gfin.dat", ios::app);
-      Gfin << setw(wd) << r << setw(wd) << glob_av[iwalk] / (double)iblk << setw(wd) << err_gdir
-           << endl;
+      Gfin << setw(wd) << r << setw(wd) << glob_av[iwalk] / (double)iblk
+           << setw(wd) << err_gdir << endl;
       Gfin.close();
     }
   }

@@ -22,20 +22,21 @@ string outdir = "out/";
 string savedir = "savestate/";
 
 int main() {
-  ofstream equi(outdir+"equi");
-  Input();                                 // Inizialization
+  /* ofstream equi(outdir + "equi"); */
+  Input(); // Inizialization
   Equilibration();
   for (int iblk = 1; iblk <= nblk; ++iblk) // Simulation
   {
     Reset(iblk); // Reset block averages
     for (int istep = 1; istep <= nstep; ++istep) {
-      equi<<walker[im]/nspin<<endl;
+      /* equi << walker[im] / nspin << endl; */
       Move(metro);
       Measure();
       Accumulate(); // Update block averages
     }
     Averages(iblk); // Print results for current block
   }
+  /* equi.close() */
   ConfFinal(); // Write final configuration
 
   return 0;
@@ -106,10 +107,10 @@ void Input(void) {
   n_props = 4; // Number of observables
 
   if (restart) {
-    cout<<"Restarting from previous configuration\n\n";
-    ifstream ReadConf(savedir + "/config.out" );
-    if(!ReadConf.is_open()){
-      cerr << "PROBLEM: unable to open "+savedir + "/config.out";
+    cout << "Restarting from previous configuration\n\n";
+    ifstream ReadConf(savedir + "/config.out");
+    if (!ReadConf.is_open()) {
+      cerr << "PROBLEM: unable to open " + savedir + "/config.out";
       exit(1);
     }
     for (int i = 0; i < nspin; ++i)
@@ -123,8 +124,8 @@ void Input(void) {
       else
         s[i] = -1;
     }
-    //Clear output files
-    cout<<"Clearing files in "<<outdir<<endl<<endl;
+    // Clear output files
+    cout << "Clearing files in " << outdir << endl << endl;
     ofstream clear;
     clear.open(outdir + "output.ene.0", ios::trunc);
     clear.close();
@@ -140,7 +141,7 @@ void Input(void) {
   Measure();
 
   // Print initial values for the potential energy and virial
-  cout << "Initial energy = " << walker[iu] / (double)nspin << endl<<endl;
+  cout << "Initial energy = " << walker[iu] / (double)nspin << endl << endl;
 }
 
 void Equilibration() {
@@ -285,7 +286,7 @@ void ConfFinal(void) {
   ofstream WriteConf;
 
   cout << "Print final configuration to file config.final " << endl << endl;
-  WriteConf.open(savedir+"config.final");
+  WriteConf.open(savedir + "config.final");
   for (int i = 0; i < nspin; ++i) {
     WriteConf << s[i] << endl;
   }

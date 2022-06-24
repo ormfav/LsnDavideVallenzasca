@@ -8,7 +8,7 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 *****************************************************************
 *****************************************************************/
 
-#include "../include/041.h"
+#include "../include/042.h"
 #include <cmath>
 #include <fstream>
 #include <iomanip>
@@ -96,7 +96,7 @@ void Input(void) {
 
   ReadInput >> rho;
   cout << "Density of particles = " << rho << endl;
-  vol = (double)npart / rho; //Da qui lato della cella!!
+  vol = (double)npart / rho; // Da qui lato della cella!!
   box = pow(vol, 1.0 / 3.0);
   cout << "Volume of the simulation box = " << vol << endl;
   cout << "Edge of the simulation box = " << box << endl;
@@ -192,7 +192,7 @@ void Input(void) {
   cout << "Initial temperature      = " << walker[it] << endl;
   cout << "Initial kinetic energy   = " << walker[ik] / (double)npart << endl;
   cout << "Initial total energy     = " << walker[ie] / (double)npart << endl;
-  cout << "Initial pressure         = " << walker[ip]  << endl;
+  cout << "Initial pressure         = " << walker[ip] << endl;
 
   return;
 }
@@ -342,12 +342,11 @@ void Measure() // Properties measurement
   for (int i = 0; i < npart; ++i)
     kin += 0.5 * (vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]);
 
-  walker[iv] = 4.0 * v;                              // Potential energy
-  walker[ik] = kin;                                  // Kinetic energy
-  walker[it] = (2.0 / 3.0) * kin / (double)npart;    // Temperature
-  walker[ie] = 4.0 * v + kin;                        // Total energy;
-  walker[ip] = rho * temp + w / vol / (double)npart; // Pressure
-
+  walker[iv] = 4.0 * v;                           // Potential energy
+  walker[ik] = kin;                               // Kinetic energy
+  walker[it] = (2.0 / 3.0) * kin / (double)npart; // Temperature
+  walker[ie] = 4.0 * v + kin;                     // Total energy;
+  walker[ip] = rho * walker[it] + w / vol;        // Pressure
   return;
 }
 

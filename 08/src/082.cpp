@@ -59,7 +59,9 @@ int main(int argc, char *argv[]) {
 
   /* SA */
   array<double, 2> starting_params = {1, 1};
-  EvalEnergy(starting_params, DELTA_EN, STEPS_PER_BLOCK, N_BLOCKS, rnd);
+
+  tie(oldH, olderr) =
+      EvalEnergy(starting_params, DELTA_EN, STEPS_PER_BLOCK, N_BLOCKS, rnd);
   pt2D params(move_params, starting_params);
 
   string path = "out/082-params.csv";
@@ -68,15 +70,20 @@ int main(int argc, char *argv[]) {
   fout << "mu,sigma^2,energy,err\n";
   fout << params[0] << "," << params[1] << "," << oldH << "," << olderr << endl;
 
-  for (size_t i = 0; i < 14; ++i) {
-    cout << "<---: beta = " << beta << " :--->\n";
-    for (size_t j = 0; j < 10+2*i; ++j) {
-      cout << "step: " << (j + 1) << "/10\n";
+  for (size_t i = 0; i < 30; ++i) {
+    cout << "=======================\n";
+    cout << "| schedule step: " << (i + 1) << "/30\n";
+    cout << "| beta: " << beta << "\n";
+    cout << "=======================\n";
+
+    size_t steps = 10 + size_t(1.33 * i);
+    for (size_t j = 0; j < steps; ++j) {
+      cout << "\nstep: " << (j + 1) << "/" << steps << endl;
       params.Move();
       fout << params[0] << "," << params[1] << "," << oldH << "," << olderr
            << endl;
     }
-    beta *= 1.5;
+    beta *= 1.2;
   }
   fout.close();
 

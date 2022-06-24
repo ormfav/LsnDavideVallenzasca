@@ -20,7 +20,9 @@ template <> double TrialStep<'u'>(double x, Random &rnd, double delta) {
 
 template <> double TrialStep<'+'>(double x, Random &rnd, double delta) {
   double r;
-  r = x + rnd.Rannyu(-delta, delta);
+  do {
+    r = x + rnd.Rannyu(-delta, delta);
+  } while (r == 0);
   int sign = (r > 0) - (r < 0);
   return sign * r;
 }

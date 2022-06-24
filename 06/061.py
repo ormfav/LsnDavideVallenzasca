@@ -34,6 +34,7 @@ for T in np.linspace(Tmin,Tmax,npoints):
     print("Running simulation with: T =",T,", h =",sys.argv[2])
     with open('in/input.dat', 'r') as f:
         sed=f.readlines()
+    sed[0]=str(sys.argv[1])+"\n"
     sed[2]=str(T)+"\n"
     sed[5]=str(sys.argv[2])+"\n"
     

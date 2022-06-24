@@ -27,7 +27,8 @@ int main() {
   ofstream Epot(outdir + state + "/output_epot_instant.dat", ios::app);
   cout << "Simulating " + state + " phase\n";
   Input(); // Inizialization
-  if(equi_steps) Equilibration();
+  if (equi_steps)
+    Equilibration();
   /* Still working in blocks to check acceptance */
   for (int iblk = 1; iblk <= nblk; iblk++) { // Simulation
     for (int istep = 1; istep <= nstep; istep++) {
@@ -111,6 +112,7 @@ void Input(void) {
   double aux = 8. * pi * rho;
   vtail = aux / (9. * pow(rcut, 9)) - aux / (3. * pow(rcut, 3));
   ptail = 4. * aux / (9. * pow(rcut, 9)) - 2. * aux / (3. * pow(rcut, 3));
+  ptail *= rho;
 
   ReadInput >> delta;
 
@@ -125,7 +127,8 @@ void Input(void) {
   cout << "Moves parameter = " << delta << endl;
   cout << "Number of blocks = " << nblk << endl;
   cout << "Number of steps in one block = " << nstep << endl << endl;
-  cout << "Number of steps in equilibration phase = " << equi_steps<< endl << endl;
+  cout << "Number of steps in equilibration phase = " << equi_steps << endl
+       << endl;
   ReadInput.close();
 
   // Prepare arrays for measurements
@@ -208,13 +211,14 @@ void Input(void) {
   cout << "Initial temperature      = " << walker[it] << endl;
   cout << "Initial kinetic energy   = " << walker[ik] / (double)npart << endl;
   cout << "Initial total energy     = " << walker[ie] / (double)npart << endl;
-  cout << "Initial pressure         = " << walker[ip] + ptail << endl; // DEVO DIVIDERE PER NPART???
+  cout << "Initial pressure         = " << walker[ip] + ptail << endl;
 
   return;
 }
 
-void Equilibration(){ 
-  for(int i = 0; i<equi_steps;++i) Move();
+void Equilibration() {
+  for (int i = 0; i < equi_steps; ++i)
+    Move();
 }
 
 void Move() {
@@ -368,11 +372,11 @@ void Measure() // Properties measurement
   for (int i = 0; i < npart; ++i)
     kin += 0.5 * (vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]);
 
-  walker[iv] = 4.0 * v;                              // Potential energy
-  walker[ik] = kin;                                  // Kinetic energy
-  walker[it] = (2.0 / 3.0) * kin / (double)npart;    // Temperature
-  walker[ie] = 4.0 * v + kin;                        // Total energy;
-  walker[ip] = rho * temp + w / vol / (double)npart; // Pressure
+  walker[iv] = 4.0 * v;                           // Potential energy
+  walker[ik] = kin;                               // Kinetic energy
+  walker[it] = (2.0 / 3.0) * kin / (double)npart; // Temperature
+  walker[ie] = 4.0 * v + kin;                     // Total energy;
+  walker[ip] = rho * temp + w / vol;              // Pressure
 
   return;
 }

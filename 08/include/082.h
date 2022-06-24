@@ -67,7 +67,7 @@ void EvalEnergy(array<double, 2> &params, ofstream &fout_pt,
   /* Data blocking */
 
   do {
-    energy.Measure(1, fout_pt);
+    energy.Measure(10, fout_pt);
     energy.EvalBlock(fout_ene);
   } while (energy.CompletedBlocks() < n_blocks);
 }

@@ -12,23 +12,23 @@ LIB := ../lib/
 RANDOM := $(LIB)Random/
 
 #User interface
-.PHONY: all clean 041 
+.PHONY: all clean 042 
 
-all: $(BIN)041.x 
+all: $(BIN)042.x 
 
 clean:
 	@rm -rf $(OBJ) $(BIN)
 	@echo "All clean"
 
-041: $(BIN)041.x
+042: $(BIN)042.x
 
 #Rules
-$(BIN)041.x: $(OBJ)041.o $(RANDOM)$(OBJ)random.o | $(BIN)
+$(BIN)042.x: $(OBJ)042.o $(RANDOM)$(OBJ)random.o | $(BIN)
 	@echo "Linking $^"
 	$(CXX) $(CXXFLAGS) $^ -o $@
-$(OBJ)041.o: $(SRC)041.cpp $(INC)041.h $(wildcard $(CFG)*) $(RANDOM)$(INC)random.h | $(OBJ) 
+$(OBJ)042.o: $(SRC)042.cpp $(INC)042.h $(wildcard $(CFG)*) $(RANDOM)$(INC)random.h | $(OBJ) 
 	@echo "Compiling $@"
-	$(CXX) $(CXXFLAGS) -c src/041.cpp -o $@
+	$(CXX) $(CXXFLAGS) -c src/042.cpp -o $@
 
 $(RANDOM)$(OBJ)random.o: 
 	$(MAKE) -C $(RANDOM)

@@ -1,5 +1,5 @@
-alias run-041='bin/041.x'
+alias run-042='bin/042.x'
 
-alias mkrun-041='make 041 && echo "Make done. Exec." && bin/041.x'
+alias mkrun-042='make 042 && echo "Make done. Exec." && bin/042.x'
 
 alias clean-output='rm out/solid/* && rm out/liquid/* && rm out/gas/*'
