@@ -76,7 +76,9 @@ int main(int argc, char *argv[]) {
     cout << "| beta: " << beta << "\n";
     cout << "=======================\n";
 
+    /* size_t steps = 30; */
     size_t steps = 10 + size_t(1.33 * i);
+    /* size_t steps = 10 + size_t(pow(i,1.5)/3.9); */
     for (size_t j = 0; j < steps; ++j) {
       cout << "\nstep: " << (j + 1) << "/" << steps << endl;
       params.Move();

@@ -1,0 +1,19 @@
+1
+0
+2.0
+50
+1.0
+0.0
+150
+20
+10000
+
+  ReadInput >> metro; //1 metropolis, 0 gibbs
+  ReadInput >> restart;
+  ReadInput >> temp;
+  ReadInput >> nspin;
+  ReadInput >> J;
+  ReadInput >> h;
+  ReadInput >> tc; //quilibration time
+  ReadInput >> nblk;
+  ReadInput >> nstep
