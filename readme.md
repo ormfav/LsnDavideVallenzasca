@@ -8,9 +8,9 @@
 
 * `source lsn` to load some useful aliases for the 
   current shell session. They are:
-** `run-XYz` to run the selected excercise
-** `mkrun-XYz` to make and run the selected excercise
-** `clean-output` to remove all files in `out/`
+  - `run-XYz` to run the selected excercise
+  - `mkrun-XYz` to make and run the selected excercise
+  - `clean-output` to remove all files in `out/`
 
 **note:** these aliases won't work for excercise 10
 because there you have to run the executables through `mpiexec`
@@ -21,9 +21,9 @@ Each excercise folder is labelled with a two-chars name indicating
 the number of the excercise. The structure of the exercise folder is the
 following:
 ```
-XX<br>
-├── XX.ipynb
-├── LSN_Exercises_XX.ipynb
+XY
+├── XY.ipynb
+├── LSN_Exercises_XY.ipynb
 │
 ├── in
 ├── out
@@ -39,8 +39,8 @@ XX<br>
 └── makefile
 ```
 
-- XX.ipynb: jupyter notebook with the results of the excercises
-- LSN_Exercises_XX.ipynb: jupyter notebook with the assignements
+- XY.ipynb: jupyter notebook with the results of the excercises
+- LSN_Exercises_XY.ipynb: jupyter notebook with the assignements
 - in: the folder containing input data (starting values,
   configurations etc..)
 - out: a folder with the data collected after the c++ simulation
@@ -58,7 +58,7 @@ XX<br>
 In addition to excercises folder you will find a lib folder, containing classes and
 functions visible to all the excercises:
 ```
-lib<br>
+lib
 ├── DataBlocking
 ├── Ga
 ├── Metropolis
