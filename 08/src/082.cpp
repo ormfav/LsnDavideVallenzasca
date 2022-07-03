@@ -32,14 +32,23 @@ int main(int argc, char *argv[]) {
 
     array<double, 2> num, den;
     for (size_t i = 0; i < 2; ++i) {
-      if (p[i] >= DELTA_SA - trial_p[i])
-        num[i] = trial_p[i] / DELTA_SA;
-      else
-        num[i] = 1 - trial_p[i] / DELTA_SA;
-      if (trial_p[i] >= DELTA_SA - p[i])
-        den[i] = p[i] / DELTA_SA;
-      else
-        den[i] = 1 - p[i] / DELTA_SA;
+      if ((DELTA_SA - trial_p[i]) > 0) {
+        double norm = (DELTA_SA - trial_p[i]) * (DELTA_SA - trial_p[i]) +
+                      2 * trial_p[i] * trial_p[i];
+        if (p[i] >= (DELTA_SA - trial_p[i]))
+          num[i] = trial_p[i] / norm;
+        else
+          num[i] = (DELTA_SA - trial_p[i]) / norm;
+      } else
+        num[i] = 0.5 / DELTA_SA;
+      if ((DELTA_SA - p[i]) > 0) {
+        double norm = (DELTA_SA - p[i]) * (DELTA_SA - p[i]) + 2 * p[i] * p[i];
+        if (trial_p[i] >= (DELTA_SA - p[i]))
+          den[i] = p[i] / norm;
+        else
+          den[i] = (DELTA_SA - p[i]) / norm;
+      } else
+        den[i] = 0.5 / DELTA_SA;
     }
     double trial_step_ratio = num[0] * num[1] / (den[0] * den[1]);
 

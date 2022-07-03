@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
   // Direct move
   auto db_move_drct = [&rnd](pt1D &p) {
     p[0] = S0 * exp((INTREST_RATE - 0.5 * SIGMA * SIGMA) * T +
-                    SIGMA * sqrt(T) * rnd.Gauss(0, T));
+                    SIGMA * sqrt(T) * rnd.Gauss(0, 1));
     return 1;
   };
   // Discrete move
